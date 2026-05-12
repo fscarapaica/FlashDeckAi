@@ -27,16 +27,16 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800 font-sans min-h-screen">
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen">
 
     <!-- Navbar -->
-    <nav class="bg-white shadow-md p-4 sticky top-0 z-10">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-blue-600">Polish Anki Maker</h1>
+    <nav class="bg-gray-800 shadow-md p-4 z-10 border-b border-gray-700 relative">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center">
+            <h1 class="text-2xl font-bold text-blue-400 mb-4 md:mb-0">Anki AI Deck Maker</h1>
 
             <div class="flex items-center space-x-4">
-                <input type="password" id="api-key" placeholder="Gemini API Key" class="px-3 py-1 border rounded-md text-sm w-48 focus:outline-none focus:border-blue-500">
-                <button id="save-api-key" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded transition">Save Key</button>
+                <input type="password" id="api-key" placeholder="Gemini API Key" class="px-3 py-1 border border-gray-600 bg-gray-700 text-gray-100 rounded-md text-sm w-48 focus:outline-none focus:border-blue-500">
+                <button id="save-api-key" class="text-sm bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-200 px-3 py-1 rounded transition">Save Key</button>
             </div>
         </div>
     </nav>
@@ -47,26 +47,45 @@
         <!-- Left Column: Input and Deck Info -->
         <div class="lg:col-span-1 space-y-6">
 
-            <!-- Deck Metadata Card -->
-            <div class="bg-white p-6 rounded-lg shadow-sm">
-                <h2 class="text-lg font-semibold mb-4 border-b pb-2">Deck Settings</h2>
+            <!-- LLM Settings Card -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
+                <h2 class="text-lg font-semibold mb-4 border-b border-gray-700 pb-2 text-gray-200">LLM Settings</h2>
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Deck Name</label>
-                    <input type="text" id="deck-name" placeholder="e.g., Polish Vocabulary" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">System Prompt</label>
+                    <textarea id="system-prompt" rows="5" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500 text-sm font-mono">You are a Polish language dictionary. The user will provide a Polish word. Return ONLY a raw JSON object with the following schema. Do not include markdown formatting or explanations.
+{
+  "word_pl": "string (the word provided)",
+  "root_pl": "string (infinitive or nominative root)",
+  "translation_en": "string",
+  "example_1_pl": "string",
+  "example_1_en": "string",
+  "example_2_pl": "string",
+  "example_2_en": "string"
+}</textarea>
+                    <p class="text-xs text-gray-400 mt-1">Adjust the language or schema above. Ensure your edits remain valid JSON matching the format.</p>
+                </div>
+            </div>
+
+            <!-- Deck Metadata Card -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
+                <h2 class="text-lg font-semibold mb-4 border-b border-gray-700 pb-2 text-gray-200">Deck Settings</h2>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Deck Name</label>
+                    <input type="text" id="deck-name" placeholder="e.g., Polish Vocabulary" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500">
                 </div>
 
                 <div class="space-y-3 pt-2">
-                    <label class="block text-sm font-medium text-gray-700">Project Data (JSON)</label>
+                    <label class="block text-sm font-medium text-gray-300">Project Data (JSON)</label>
                     <div class="flex space-x-2">
-                        <button id="export-json-btn" class="flex-1 bg-gray-100 hover:bg-gray-200 border text-gray-700 py-2 rounded-md transition text-sm font-medium">Export JSON</button>
-                        <label class="flex-1 bg-gray-100 hover:bg-gray-200 border text-gray-700 py-2 rounded-md transition text-sm font-medium text-center cursor-pointer">
+                        <button id="export-json-btn" class="flex-1 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-200 py-2 rounded-md transition text-sm font-medium">Export JSON</button>
+                        <label class="flex-1 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-200 py-2 rounded-md transition text-sm font-medium text-center cursor-pointer">
                             Load JSON
                             <input type="file" id="import-json-file" accept=".json" class="hidden">
                         </label>
                     </div>
                 </div>
 
-                <div class="mt-6 pt-4 border-t">
+                <div class="mt-6 pt-4 border-t border-gray-700">
                      <button id="export-anki-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition shadow-md flex justify-center items-center">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         Export .apkg
@@ -75,37 +94,37 @@
             </div>
 
             <!-- Vocabulary Input Card -->
-            <div class="bg-white p-6 rounded-lg shadow-sm">
-                <h2 class="text-lg font-semibold mb-4 border-b pb-2">Add New Word</h2>
+            <div class="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
+                <h2 class="text-lg font-semibold mb-4 border-b border-gray-700 pb-2 text-gray-200">Add New Word</h2>
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Polish Word</label>
-                    <input type="text" id="polish-word-input" placeholder="Wpisz słowo..." class="w-full px-4 py-3 text-lg border rounded-md focus:outline-none focus:border-blue-500 shadow-inner">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Target Word</label>
+                    <input type="text" id="polish-word-input" placeholder="Type a word..." class="w-full px-4 py-3 text-lg border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500 shadow-inner">
                 </div>
-                <button id="generate-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                <button id="generate-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
                     Generate Data
                 </button>
-                <div id="status-message" class="mt-3 text-sm hidden"></div>
+                <div id="status-message" class="mt-3 text-sm hidden font-medium"></div>
             </div>
 
         </div>
 
         <!-- Right Column: Staging Area -->
         <div class="lg:col-span-2">
-            <div class="bg-white p-6 rounded-lg shadow-sm min-h-[600px] flex flex-col">
-                <div class="flex justify-between items-center mb-4 border-b pb-2">
-                    <h2 class="text-xl font-semibold">Staging Area</h2>
-                    <span id="word-count" class="text-sm bg-blue-100 text-blue-800 py-1 px-3 rounded-full font-medium">0 words</span>
+            <div class="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700 min-h-[600px] flex flex-col">
+                <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+                    <h2 class="text-xl font-semibold text-gray-200">Staging Area</h2>
+                    <span id="word-count" class="text-sm bg-blue-900 text-blue-200 py-1 px-3 rounded-full font-medium border border-blue-800">0 words</span>
                 </div>
 
                 <!-- Words List -->
                 <div id="words-container" class="flex-1 overflow-y-auto pr-2 space-y-4">
                     <!-- Cards will be injected here via JS -->
-                    <div id="empty-state" class="text-center text-gray-400 py-20">
-                        <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <div id="empty-state" class="text-center text-gray-500 py-20">
+                        <svg class="mx-auto h-12 w-12 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                         </svg>
-                        <p class="mt-4 text-sm font-medium text-gray-500">No words staged yet.</p>
-                        <p class="mt-1 text-xs text-gray-400">Generate a word or load a JSON project to get started.</p>
+                        <p class="mt-4 text-sm font-medium text-gray-400">No words staged yet.</p>
+                        <p class="mt-1 text-xs text-gray-500">Generate a word or load a JSON project to get started.</p>
                     </div>
                 </div>
             </div>
@@ -113,42 +132,42 @@
     </main>
 
     <!-- Edit Modal (Hidden by default) -->
-    <div id="edit-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden z-50 flex items-center justify-center backdrop-blur-sm">
-        <div class="bg-white rounded-lg p-6 w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto no-scrollbar">
-            <h3 class="text-xl font-bold mb-4 border-b pb-2">Edit Word Data</h3>
+    <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-70 hidden z-50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-gray-800 rounded-lg p-6 w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto no-scrollbar border border-gray-700">
+            <h3 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2 text-gray-200">Edit Word Data</h3>
 
             <input type="hidden" id="edit-id">
 
             <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Word (Polish)</label>
-                    <input type="text" id="edit-word" class="mt-1 w-full px-3 py-2 border rounded-md">
+                    <label class="block text-sm font-medium text-gray-300">Target Word</label>
+                    <input type="text" id="edit-word" class="mt-1 w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Root / Base Form</label>
-                    <input type="text" id="edit-root" class="mt-1 w-full px-3 py-2 border rounded-md">
+                    <label class="block text-sm font-medium text-gray-300">Root / Base Form</label>
+                    <input type="text" id="edit-root" class="mt-1 w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500">
                 </div>
             </div>
 
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Translation (English)</label>
-                <input type="text" id="edit-translation" class="mt-1 w-full px-3 py-2 border rounded-md">
+                <label class="block text-sm font-medium text-gray-300">Translation</label>
+                <input type="text" id="edit-translation" class="mt-1 w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500">
             </div>
 
             <div class="mb-4 space-y-2">
-                <label class="block text-sm font-medium text-gray-700">Example 1</label>
-                <input type="text" id="edit-ex1-pl" placeholder="Polish sentence" class="w-full px-3 py-2 border rounded-md">
-                <input type="text" id="edit-ex1-en" placeholder="English translation" class="w-full px-3 py-2 border rounded-md bg-gray-50">
+                <label class="block text-sm font-medium text-gray-300">Example 1</label>
+                <input type="text" id="edit-ex1-pl" placeholder="Target language sentence" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500">
+                <input type="text" id="edit-ex1-en" placeholder="Translation" class="w-full px-3 py-2 border border-gray-600 bg-gray-900 text-gray-300 rounded-md focus:outline-none focus:border-blue-500">
             </div>
 
             <div class="mb-6 space-y-2">
-                <label class="block text-sm font-medium text-gray-700">Example 2</label>
-                <input type="text" id="edit-ex2-pl" placeholder="Polish sentence" class="w-full px-3 py-2 border rounded-md">
-                <input type="text" id="edit-ex2-en" placeholder="English translation" class="w-full px-3 py-2 border rounded-md bg-gray-50">
+                <label class="block text-sm font-medium text-gray-300">Example 2</label>
+                <input type="text" id="edit-ex2-pl" placeholder="Target language sentence" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500">
+                <input type="text" id="edit-ex2-en" placeholder="Translation" class="w-full px-3 py-2 border border-gray-600 bg-gray-900 text-gray-300 rounded-md focus:outline-none focus:border-blue-500">
             </div>
 
-            <div class="flex justify-end space-x-3 border-t pt-4">
-                <button id="cancel-edit-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
+            <div class="flex justify-end space-x-3 border-t border-gray-700 pt-4">
+                <button id="cancel-edit-btn" class="px-4 py-2 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 border border-gray-600">Cancel</button>
                 <button id="save-edit-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium">Save Changes</button>
             </div>
         </div>
