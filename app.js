@@ -15,6 +15,7 @@ const elements = {
     emptyState: document.getElementById('empty-state'),
     wordCount: document.getElementById('word-count'),
     exportAnkiBtn: document.getElementById('export-anki-btn'),
+    systemPrompt: document.getElementById('system-prompt'),
 
     // Edit Modal Elements
     editModal: document.getElementById('edit-modal'),
@@ -103,7 +104,8 @@ async function handleGenerate() {
     showStatus('Calling Gemini API...', 'info');
 
     try {
-        const data = await callGeminiAPI(word, apiKey);
+        const customPrompt = elements.systemPrompt.value;
+        const data = await callGeminiAPI(word, apiKey, customPrompt);
 
         // Add unique ID for tracking/Anki GUID
         data.id = generateUniqueId();
@@ -126,19 +128,8 @@ async function handleGenerate() {
 }
 
 // Call Gemini API
-async function callGeminiAPI(word, apiKey) {
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-
-    const systemInstruction = `You are a Polish language dictionary. The user will provide a Polish word. Return ONLY a raw JSON object with the following schema. Do not include markdown formatting or explanations.
-{
-  "word_pl": "string (the word provided)",
-  "root_pl": "string (infinitive or nominative root)",
-  "translation_en": "string",
-  "example_1_pl": "string",
-  "example_1_en": "string",
-  "example_2_pl": "string",
-  "example_2_en": "string"
-}`;
+async function callGeminiAPI(word, apiKey, systemInstruction) {
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
     const payload = {
         contents: [{
@@ -192,26 +183,26 @@ function updateUI() {
 
         stagedWords.forEach((wordObj, index) => {
             const card = document.createElement('div');
-            card.className = 'bg-gray-50 p-4 rounded-lg border border-gray-200 relative group';
+            card.className = 'bg-gray-700 p-4 rounded-lg border border-gray-600 relative group';
 
             card.innerHTML = `
                 <div class="flex justify-between items-start mb-2">
                     <div>
-                        <h3 class="text-lg font-bold text-gray-900">${wordObj.word_pl}</h3>
-                        <p class="text-sm text-gray-500">Root: ${wordObj.root_pl} | ${wordObj.translation_en}</p>
+                        <h3 class="text-lg font-bold text-gray-100">${wordObj.word_pl}</h3>
+                        <p class="text-sm text-gray-400">Root: ${wordObj.root_pl} | ${wordObj.translation_en}</p>
                     </div>
                     <div class="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onclick="openEditModal('${wordObj.id}')" class="text-blue-600 hover:text-blue-800 p-1">
+                        <button onclick="openEditModal('${wordObj.id}')" class="text-blue-400 hover:text-blue-300 p-1">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                         </button>
-                        <button onclick="deleteWord('${wordObj.id}')" class="text-red-600 hover:text-red-800 p-1">
+                        <button onclick="deleteWord('${wordObj.id}')" class="text-red-400 hover:text-red-300 p-1">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     </div>
                 </div>
-                <div class="text-sm mt-3 space-y-1">
-                    <p><strong>1.</strong> ${wordObj.example_1_pl} <br><span class="text-gray-500 italic">${wordObj.example_1_en}</span></p>
-                    <p><strong>2.</strong> ${wordObj.example_2_pl} <br><span class="text-gray-500 italic">${wordObj.example_2_en}</span></p>
+                <div class="text-sm mt-3 space-y-1 text-gray-300">
+                    <p><strong class="text-gray-200">1.</strong> ${wordObj.example_1_pl} <br><span class="text-gray-400 italic">${wordObj.example_1_en}</span></p>
+                    <p><strong class="text-gray-200">2.</strong> ${wordObj.example_2_pl} <br><span class="text-gray-400 italic">${wordObj.example_2_en}</span></p>
                 </div>
             `;
             elements.wordsContainer.appendChild(card);
