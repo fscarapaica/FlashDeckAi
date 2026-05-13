@@ -128,15 +128,28 @@ async function handleGenerate() {
 }
 
 // Call Gemini API
-async function callGeminiAPI(word, apiKey, systemInstruction) {
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+async function callGeminiAPI(word, apiKey, customInstruction) {
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+    const jsonSchemaTemplate = `
+{
+  "word_pl": "string (the word provided)",
+  "root_pl": "string (infinitive or nominative root)",
+  "translation_en": "string",
+  "example_1_pl": "string",
+  "example_1_en": "string",
+  "example_2_pl": "string",
+  "example_2_en": "string"
+}`;
+
+    const fullSystemInstruction = `${customInstruction}\n\n${jsonSchemaTemplate}`;
 
     const payload = {
         contents: [{
             parts: [{ text: word }]
         }],
         systemInstruction: {
-            parts: [{ text: systemInstruction }]
+            parts: [{ text: fullSystemInstruction }]
         },
         generationConfig: {
             temperature: 0.2 // Low temperature for more deterministic/dictionary-like results

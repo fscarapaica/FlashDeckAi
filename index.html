@@ -52,7 +52,11 @@
                 <h2 class="text-lg font-semibold mb-4 border-b border-gray-700 pb-2 text-gray-200">LLM Settings</h2>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-300 mb-1">System Prompt</label>
-                    <textarea id="system-prompt" rows="5" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500 text-sm font-mono">You are a Polish language dictionary. The user will provide a Polish word. Return ONLY a raw JSON object with the following schema. Do not include markdown formatting or explanations.
+                    <textarea id="system-prompt" rows="3" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500 text-sm">You are a Polish language dictionary. The user will provide a Polish word. Return ONLY a raw JSON object with the following schema. Do not include markdown formatting or explanations.</textarea>
+                    <p class="text-xs text-gray-400 mt-1 mb-3">Adjust the instruction above to change the target language or add nuances (e.g., regional dialects).</p>
+
+                    <label class="block text-sm font-medium text-gray-300 mb-1">JSON Schema Template (Read-Only)</label>
+                    <pre class="w-full px-3 py-2 border border-gray-600 bg-gray-900 text-gray-300 rounded-md text-xs font-mono overflow-x-auto select-all cursor-not-allowed">
 {
   "word_pl": "string (the word provided)",
   "root_pl": "string (infinitive or nominative root)",
@@ -61,8 +65,7 @@
   "example_1_en": "string",
   "example_2_pl": "string",
   "example_2_en": "string"
-}</textarea>
-                    <p class="text-xs text-gray-400 mt-1">Adjust the language or schema above. Ensure your edits remain valid JSON matching the format.</p>
+}</pre>
                 </div>
             </div>
 
