@@ -38,12 +38,7 @@ function init() {
     const savedKey = localStorage.getItem('gemini_api_key');
     if (savedKey) {
         elements.apiKeyInput.value = savedKey;
-    }
-
-    // Load saved model preference
-    const savedModel = localStorage.getItem('gemini_model_pref');
-    if (savedModel) {
-        elements.modelSelect.value = savedModel;
+        fetchModels(savedKey);
     }
 
     // Event Listeners
@@ -69,8 +64,46 @@ function saveApiKey() {
     if (key) {
         localStorage.setItem('gemini_api_key', key);
         showStatus('API Key saved successfully!', 'success');
+        fetchModels(key);
     } else {
         showStatus('Please enter an API key.', 'error');
+    }
+}
+
+// Fetch Models dynamically
+async function fetchModels(apiKey) {
+    try {
+        elements.modelSelect.innerHTML = '<option value="">Loading models...</option>';
+        elements.modelSelect.disabled = true;
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        if (!response.ok) throw new Error('Failed to fetch models. Check API Key.');
+
+        const data = await response.json();
+        const models = data.models
+            .filter(m => m.supportedGenerationMethods.includes('generateContent') && m.name.includes('flash'))
+            .map(m => m.name.replace('models/', ''));
+
+        elements.modelSelect.innerHTML = '';
+        models.forEach(modelName => {
+            const option = document.createElement('option');
+            option.value = modelName;
+            option.textContent = modelName;
+            elements.modelSelect.appendChild(option);
+        });
+
+        elements.modelSelect.disabled = false;
+
+        const savedModel = localStorage.getItem('gemini_model_pref');
+        if (savedModel && models.includes(savedModel)) {
+            elements.modelSelect.value = savedModel;
+        } else if (models.includes('gemini-2.5-flash')) {
+            elements.modelSelect.value = 'gemini-2.5-flash';
+        }
+
+    } catch (e) {
+        elements.modelSelect.innerHTML = '<option value="">Error loading models</option>';
+        showStatus(e.message, 'error');
     }
 }
 
@@ -120,6 +153,12 @@ async function handleGenerate() {
         const selectedModel = elements.modelSelect.value || 'gemini-1.5-flash';
         const data = await callGeminiAPI(word, apiKey, customPrompt, selectedModel);
 
+        // Check for AI-generated error (e.g. unrecognizable word)
+        if (data.error) {
+            showStatus(`AI could not process "${word}": ${data.error}`, 'error');
+            return;
+        }
+
         // Add unique ID for tracking/Anki GUID
         data.id = generateUniqueId();
 
@@ -152,7 +191,8 @@ async function callGeminiAPI(word, apiKey, customInstruction, model) {
   "example_1_pl": "string",
   "example_1_en": "string",
   "example_2_pl": "string",
-  "example_2_en": "string"
+  "example_2_en": "string",
+  "error": "string (only if the word is invalid/unknown)"
 }`;
 
     const fullSystemInstruction = `${customInstruction}\n\n${jsonSchemaTemplate}`;

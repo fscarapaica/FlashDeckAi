@@ -34,78 +34,21 @@
         <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center">
             <h1 class="text-2xl font-bold text-blue-400 mb-4 md:mb-0">Anki AI Deck Maker</h1>
 
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-3 w-full md:w-auto overflow-x-auto no-scrollbar py-2 md:py-0">
+                <select id="gemini-model-select" class="px-3 py-1 border border-gray-600 bg-gray-700 text-gray-100 rounded-md text-sm appearance-none cursor-pointer focus:outline-none focus:border-blue-500 disabled:opacity-50" disabled>
+                    <option value="">Load API Key first...</option>
+                </select>
                 <input type="password" id="api-key" placeholder="Gemini API Key" class="px-3 py-1 border border-gray-600 bg-gray-700 text-gray-100 rounded-md text-sm w-48 focus:outline-none focus:border-blue-500">
-                <button id="save-api-key" class="text-sm bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-200 px-3 py-1 rounded transition">Save Key</button>
+                <button id="save-api-key" class="text-sm bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-200 px-3 py-1 rounded transition whitespace-nowrap">Save Key</button>
             </div>
         </div>
     </nav>
 
     <!-- Main Container -->
-    <main class="max-w-6xl mx-auto mt-8 px-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <main class="max-w-6xl mx-auto mt-8 px-4 grid grid-cols-1 lg:grid-cols-4 gap-6">
 
         <!-- Left Column: Input and Deck Info -->
-        <div class="lg:col-span-1 space-y-6">
-
-            <!-- LLM Settings Card -->
-            <div class="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
-                <h2 class="text-lg font-semibold mb-4 border-b border-gray-700 pb-2 text-gray-200">LLM Settings</h2>
-
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-300 mb-1">Gemini Model</label>
-                    <select id="gemini-model-select" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500 text-sm appearance-none cursor-pointer">
-                        <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fastest / Free Tier Safe)</option>
-                        <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-                        <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-                        <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-                    </select>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-300 mb-1">System Prompt</label>
-                    <textarea id="system-prompt" rows="3" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500 text-sm">You are a Polish language dictionary. The user will provide a Polish word. Return ONLY a raw JSON object with the following schema. Do not include markdown formatting or explanations.</textarea>
-                    <p class="text-xs text-gray-400 mt-1 mb-3">Adjust the instruction above to change the target language or add nuances (e.g., regional dialects).</p>
-
-                    <label class="block text-sm font-medium text-gray-300 mb-1">JSON Schema Template (Read-Only)</label>
-                    <pre class="w-full px-3 py-2 border border-gray-600 bg-gray-900 text-gray-300 rounded-md text-xs font-mono overflow-x-auto select-all cursor-not-allowed">
-{
-  "word_pl": "string (the word provided)",
-  "root_pl": "string (infinitive or nominative root)",
-  "translation_en": "string",
-  "example_1_pl": "string",
-  "example_1_en": "string",
-  "example_2_pl": "string",
-  "example_2_en": "string"
-}</pre>
-                </div>
-            </div>
-
-            <!-- Deck Metadata Card -->
-            <div class="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
-                <h2 class="text-lg font-semibold mb-4 border-b border-gray-700 pb-2 text-gray-200">Deck Settings</h2>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-300 mb-1">Deck Name</label>
-                    <input type="text" id="deck-name" placeholder="e.g., Polish Vocabulary" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500">
-                </div>
-
-                <div class="space-y-3 pt-2">
-                    <label class="block text-sm font-medium text-gray-300">Project Data (JSON)</label>
-                    <div class="flex space-x-2">
-                        <button id="export-json-btn" class="flex-1 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-200 py-2 rounded-md transition text-sm font-medium">Export JSON</button>
-                        <label class="flex-1 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-200 py-2 rounded-md transition text-sm font-medium text-center cursor-pointer">
-                            Load JSON
-                            <input type="file" id="import-json-file" accept=".json" class="hidden">
-                        </label>
-                    </div>
-                </div>
-
-                <div class="mt-6 pt-4 border-t border-gray-700">
-                     <button id="export-anki-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition shadow-md flex justify-center items-center">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        Export .apkg
-                    </button>
-                </div>
-            </div>
+        <div class="lg:col-span-2 space-y-6">
 
             <!-- Vocabulary Input Card -->
             <div class="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
@@ -120,11 +63,64 @@
                 <div id="status-message" class="mt-3 text-sm hidden font-medium"></div>
             </div>
 
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <!-- Deck Metadata Card -->
+                <div class="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700 flex flex-col justify-between">
+                    <div>
+                        <h2 class="text-lg font-semibold mb-4 border-b border-gray-700 pb-2 text-gray-200">Deck Settings</h2>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Deck Name</label>
+                            <input type="text" id="deck-name" placeholder="e.g., Polish Vocabulary" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500">
+                        </div>
+
+                        <div class="space-y-3 pt-2">
+                            <label class="block text-sm font-medium text-gray-300">Project Data (JSON)</label>
+                            <div class="flex space-x-2">
+                                <button id="export-json-btn" class="flex-1 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-200 py-2 rounded-md transition text-xs font-medium">Export JSON</button>
+                                <label class="flex-1 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-200 py-2 rounded-md transition text-xs font-medium text-center cursor-pointer">
+                                    Load JSON
+                                    <input type="file" id="import-json-file" accept=".json" class="hidden">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-gray-700">
+                         <button id="export-anki-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition shadow-md flex justify-center items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Export .apkg
+                        </button>
+                    </div>
+                </div>
+
+                <!-- LLM Settings Card -->
+                <div class="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
+                    <h2 class="text-lg font-semibold mb-4 border-b border-gray-700 pb-2 text-gray-200">LLM Settings</h2>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-300 mb-1">System Prompt</label>
+                        <textarea id="system-prompt" rows="3" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500 text-xs">You are a Polish language dictionary. The user will provide a Polish word. Return ONLY a raw JSON object with the following schema. If the word provided is completely unrecognizable or not a valid word, return a JSON object with a single "error" key explaining why. Do not include markdown formatting or explanations.</textarea>
+
+                        <label class="block text-sm font-medium text-gray-300 mb-1 mt-3">JSON Schema (Read-Only)</label>
+                        <pre class="w-full px-3 py-2 border border-gray-600 bg-gray-900 text-gray-300 rounded-md text-[10px] font-mono overflow-x-auto select-all cursor-not-allowed">
+{
+  "word_pl": "string",
+  "root_pl": "string",
+  "translation_en": "string",
+  "example_1_pl": "string",
+  "example_1_en": "string",
+  "example_2_pl": "string",
+  "example_2_en": "string",
+  "error": "string (only if invalid)"
+}</pre>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Right Column: Staging Area -->
         <div class="lg:col-span-2">
-            <div class="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700 min-h-[600px] flex flex-col">
+            <div class="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700 min-h-[500px] h-full flex flex-col">
                 <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
                     <h2 class="text-xl font-semibold text-gray-200">Staging Area</h2>
                     <span id="word-count" class="text-sm bg-blue-900 text-blue-200 py-1 px-3 rounded-full font-medium border border-blue-800">0 words</span>
