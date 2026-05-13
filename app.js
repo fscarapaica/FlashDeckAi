@@ -16,6 +16,7 @@ const elements = {
     wordCount: document.getElementById('word-count'),
     exportAnkiBtn: document.getElementById('export-anki-btn'),
     systemPrompt: document.getElementById('system-prompt'),
+    modelSelect: document.getElementById('gemini-model-select'),
 
     // Edit Modal Elements
     editModal: document.getElementById('edit-modal'),
@@ -39,6 +40,12 @@ function init() {
         elements.apiKeyInput.value = savedKey;
     }
 
+    // Load saved model preference
+    const savedModel = localStorage.getItem('gemini_model_pref');
+    if (savedModel) {
+        elements.modelSelect.value = savedModel;
+    }
+
     // Event Listeners
     elements.saveApiKeyBtn.addEventListener('click', saveApiKey);
     elements.generateBtn.addEventListener('click', handleGenerate);
@@ -46,6 +53,11 @@ function init() {
     elements.importJsonInput.addEventListener('change', importJson);
     elements.cancelEditBtn.addEventListener('click', closeEditModal);
     elements.saveEditBtn.addEventListener('click', saveEditedWord);
+
+    // Save model choice on change
+    elements.modelSelect.addEventListener('change', (e) => {
+        localStorage.setItem('gemini_model_pref', e.target.value);
+    });
 
     // We bind export Anki later in anki-export.js, but check if we need to disable it
     updateUI();
@@ -105,7 +117,8 @@ async function handleGenerate() {
 
     try {
         const customPrompt = elements.systemPrompt.value;
-        const data = await callGeminiAPI(word, apiKey, customPrompt);
+        const selectedModel = elements.modelSelect.value || 'gemini-1.5-flash';
+        const data = await callGeminiAPI(word, apiKey, customPrompt, selectedModel);
 
         // Add unique ID for tracking/Anki GUID
         data.id = generateUniqueId();
@@ -128,8 +141,8 @@ async function handleGenerate() {
 }
 
 // Call Gemini API
-async function callGeminiAPI(word, apiKey, customInstruction) {
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+async function callGeminiAPI(word, apiKey, customInstruction, model) {
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     const jsonSchemaTemplate = `
 {
