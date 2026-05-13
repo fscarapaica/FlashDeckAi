@@ -41,6 +41,12 @@ function init() {
         fetchModels(savedKey);
     }
 
+    // Load saved model preference
+    const savedModel = localStorage.getItem('gemini_model_pref');
+    if (savedModel) {
+        elements.modelSelect.value = savedModel;
+    }
+
     // Event Listeners
     elements.saveApiKeyBtn.addEventListener('click', saveApiKey);
     elements.generateBtn.addEventListener('click', handleGenerate);
