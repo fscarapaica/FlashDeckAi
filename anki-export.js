@@ -1,3 +1,13 @@
+
+// Ensure genanki namespace exists to prevent reference errors, accommodating both UMD and global class setups
+if (typeof window.genanki === 'undefined') {
+    window.genanki = {
+        Model: typeof Model !== 'undefined' ? Model : null,
+        Deck: typeof Deck !== 'undefined' ? Deck : null,
+        Note: typeof Note !== 'undefined' ? Note : null,
+        Package: typeof Package !== 'undefined' ? Package : null
+    };
+}
 // Wait for everything to load, including genanki, sql.js, jszip, etc.
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -48,72 +58,96 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+
+// Ensure genanki namespace exists for compatibility with existing export logic
+if (typeof window.genanki === 'undefined') {
+    window.genanki = {
+        Model: typeof Model !== 'undefined' ? Model : null,
+        Deck: typeof Deck !== 'undefined' ? Deck : null,
+        Note: typeof Note !== 'undefined' ? Note : null,
+        Package: typeof Package !== 'undefined' ? Package : null
+    };
+}
+
 function exportToAnki(wordsArray, deckName) {
     // 1. Define the Model
     // We need a stable Model ID for Anki to recognize the note type.
     const MODEL_ID = 1690000001;
 
-    const model = new genanki.Model({
-        name: 'Polish Vocabulary Model',
+            const model = new window.genanki.Model({
+        name: 'Polish Vocabulary Model v2',
         id: MODEL_ID.toString(),
         flds: [
             { name: 'Word' },
             { name: 'Root' },
-            { name: 'Translation' },
+            { name: 'RootTranslation' },
+            { name: 'PartOfSpeech' },
+            { name: 'TranslationEN' },
+            { name: 'TranslationES' },
             { name: 'Example1_PL' },
             { name: 'Example1_EN' },
             { name: 'Example2_PL' },
             { name: 'Example2_EN' }
         ],
         req: [
-            [0, 'all', [0]] // Require 'Word' field
+            [0, 'all', [0]]
         ],
         tmpls: [
             {
                 name: 'Card 1',
-                qfmt: `<div class="word">{{Word}}</div>\n{{tts pl_PL:Word}}`,
-                afmt: `<div class="root">Root: {{Root}}</div>
-<div class="translation">{{Translation}}</div>
+                qfmt: `<div class="word">{{Word}}</div>
+{{tts pl_PL:Word}}`,
+                afmt: `<div class="word">{{Word}}</div>
+<div class="pos-gender">{{PartOfSpeech}}</div>
+<div class="root">Root: {{Root}} | {{RootTranslation}}</div>
+<div class="translation-en">🇬🇧 {{TranslationEN}}</div>
+<div class="translation-es">🇪🇸 {{TranslationES}}</div>
 <hr>
 <div class="example">{{Example1_PL}}</div>
 {{tts pl_PL:Example1_PL}}
-<div class="example-en">{{Example1_EN}}</div>
+<div class="example-trans">🇬🇧 {{Example1_EN}}</div>
 <hr>
 <div class="example">{{Example2_PL}}</div>
 {{tts pl_PL:Example2_PL}}
-<div class="example-en">{{Example2_EN}}</div>`
+<div class="example-trans">🇬🇧 {{Example2_EN}}</div>`
             }
         ],
         css: `.card {
-            font-family: arial;
+            font-family: Arial, sans-serif;
             font-size: 20px;
-            text-align: center;
-            color: black;
-            background-color: white;
+            text-align: left;
+            color: #202020;
+            background-color: #f9f9f9;
+            padding: 20px;
         }
-        .word { font-size: 32px; font-weight: bold; margin-bottom: 10px; }
-        .root { font-size: 18px; color: #555; }
-        .translation { font-size: 24px; color: #0056b3; margin-bottom: 15px; }
-        .example { font-size: 20px; margin-top: 10px; }
-        .example-en { font-size: 16px; color: #666; font-style: italic; }
-        hr { margin: 20px auto; width: 80%; }`
+        .word { font-size: 32px; font-weight: bold; color: #1a56db; margin-bottom: 5px; }
+        .pos-gender { font-size: 16px; font-weight: bold; color: #555; margin-bottom: 10px; }
+        .root { font-size: 16px; color: #555; margin-bottom: 15px; }
+        .translation-en { font-size: 22px; font-weight: bold; color: #202020; margin-bottom: 5px; }
+        .translation-es { font-size: 20px; color: #444; margin-bottom: 15px; }
+        .example { font-size: 20px; margin-top: 15px; font-weight: 500; }
+        .example-trans { font-size: 16px; color: #666; font-style: italic; margin-top: 3px; }
+        hr { border: 0; border-bottom: 1px solid #ccc; margin: 20px 0; }`
     });
 
     // 2. Define the Deck
     // Generate a consistent Deck ID based on the name so it updates existing deck
     const DECK_ID = hashString(deckName);
 
-    const deck = new genanki.Deck(DECK_ID.toString(), deckName);
+    const deck = new window.genanki.Deck(DECK_ID.toString(), deckName);
 
     // 3. Add Notes (Cards) to the Deck
     wordsArray.forEach(wordObj => {
         // We use the unique 'id' from our state as the GUID so Anki knows it's the same card if updated
-        const note = new genanki.Note({
+        const note = new window.genanki.Note({
             model: model,
             fields: [
                 wordObj.word_pl || '',
                 wordObj.root_pl || '',
+                wordObj.root_translation_en || '',
+                wordObj.part_of_speech || '',
                 wordObj.translation_en || '',
+                wordObj.translation_es || '',
                 wordObj.example_1_pl || '',
                 wordObj.example_1_en || '',
                 wordObj.example_2_pl || '',
@@ -125,7 +159,7 @@ function exportToAnki(wordsArray, deckName) {
     });
 
     // 4. Create Package and Export
-    const pkg = new genanki.Package();
+    const pkg = new window.genanki.Package();
     pkg.addDeck(deck);
 
     // Save to file

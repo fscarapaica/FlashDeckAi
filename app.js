@@ -185,15 +185,19 @@ async function callGeminiAPI(word, apiKey, customInstruction, model) {
 
     const jsonSchemaTemplate = `
 {
-  "word_pl": "string (the word provided)",
-  "root_pl": "string (infinitive or nominative root)",
+  "word_pl": "string",
   "translation_en": "string",
+  "translation_es": "string",
+  "root_pl": "string",
+  "root_translation_en": "string",
+  "part_of_speech": "string (e.g., Noun, Verb, Adjective)",
   "example_1_pl": "string",
   "example_1_en": "string",
   "example_2_pl": "string",
   "example_2_en": "string",
-  "error": "string (only if the word is invalid/unknown)"
-}`;
+  "error": "string (only if invalid)"
+}
+`;
 
     const fullSystemInstruction = `${customInstruction}\n\n${jsonSchemaTemplate}`;
 
@@ -264,26 +268,40 @@ function updateUI() {
 
             const safeId = escapeHTML(wordObj.id);
 
-            card.innerHTML = `
-                <div class="flex justify-between items-start mb-2">
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-100">${escapeHTML(wordObj.word_pl)}</h3>
-                        <p class="text-sm text-gray-400">Root: ${escapeHTML(wordObj.root_pl)} | ${escapeHTML(wordObj.translation_en)}</p>
+            card.innerHTML = `                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-3">
+                            <h3 class="text-xl font-bold text-blue-400">${escapeHTML(wordObj.word_pl)}</h3>
+                            <span class="px-2 py-0.5 rounded text-xs font-semibold bg-gray-600 text-gray-200">${escapeHTML(wordObj.part_of_speech)}</span>
+                        </div>
+                        <p class="text-sm text-gray-400 mt-1">Root: <span class="text-gray-300 font-medium">${escapeHTML(wordObj.root_pl)}</span> | ${escapeHTML(wordObj.root_translation_en)}</p>
                     </div>
-                    <div class="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onclick="openEditModal('${safeId}')" class="text-blue-400 hover:text-blue-300 p-1">
+
+                    <div class="flex space-x-2 mt-2 sm:mt-0 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="openEditModal('${safeId}')" class="text-blue-400 hover:text-blue-300 p-1 bg-gray-800 rounded">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                         </button>
-                        <button onclick="deleteWord('${safeId}')" class="text-red-400 hover:text-red-300 p-1">
+                        <button onclick="deleteWord('${safeId}')" class="text-red-400 hover:text-red-300 p-1 bg-gray-800 rounded">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     </div>
                 </div>
-                <div class="text-sm mt-3 space-y-1 text-gray-300">
-                    <p><strong class="text-gray-200">1.</strong> ${escapeHTML(wordObj.example_1_pl)} <br><span class="text-gray-400 italic">${escapeHTML(wordObj.example_1_en)}</span></p>
-                    <p><strong class="text-gray-200">2.</strong> ${escapeHTML(wordObj.example_2_pl)} <br><span class="text-gray-400 italic">${escapeHTML(wordObj.example_2_en)}</span></p>
+
+                <div class="mb-3 bg-gray-800 p-3 rounded-md border border-gray-600">
+                    <p class="text-md font-medium text-gray-200">🇬🇧 ${escapeHTML(wordObj.translation_en)}</p>
+                    <p class="text-md font-medium text-gray-300">🇪🇸 ${escapeHTML(wordObj.translation_es)}</p>
                 </div>
-            `;
+
+                <div class="text-sm space-y-3 text-gray-300 pl-1">
+                    <div>
+                        <p class="font-medium text-gray-200"><span class="font-bold text-gray-400 mr-1">1.</span>${escapeHTML(wordObj.example_1_pl)}</p>
+                        <p class="text-gray-400 italic text-xs mt-0.5">🇬🇧 ${escapeHTML(wordObj.example_1_en)}</p>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-200"><span class="font-bold text-gray-400 mr-1">2.</span>${escapeHTML(wordObj.example_2_pl)}</p>
+                        <p class="text-gray-400 italic text-xs mt-0.5">🇬🇧 ${escapeHTML(wordObj.example_2_en)}</p>
+                    </div>
+                </div>`;
             elements.wordsContainer.appendChild(card);
         });
     }
@@ -300,14 +318,17 @@ window.openEditModal = function(id) {
     const wordObj = stagedWords.find(w => w.id === id);
     if (!wordObj) return;
 
-    elements.editId.value = wordObj.id;
-    elements.editWord.value = wordObj.word_pl;
-    elements.editRoot.value = wordObj.root_pl;
-    elements.editTranslation.value = wordObj.translation_en;
-    elements.editEx1Pl.value = wordObj.example_1_pl;
-    elements.editEx1En.value = wordObj.example_1_en;
-    elements.editEx2Pl.value = wordObj.example_2_pl;
-    elements.editEx2En.value = wordObj.example_2_en;
+    document.getElementById('edit-id').value = wordObj.id;
+    document.getElementById('edit-word').value = wordObj.word_pl || '';
+    document.getElementById('edit-root').value = wordObj.root_pl || '';
+    document.getElementById('edit-root-translation').value = wordObj.root_translation_en || '';
+    document.getElementById('edit-pos').value = wordObj.part_of_speech || '';
+    document.getElementById('edit-translation').value = wordObj.translation_en || '';
+    document.getElementById('edit-translation-es').value = wordObj.translation_es || '';
+    document.getElementById('edit-ex1-pl').value = wordObj.example_1_pl || '';
+    document.getElementById('edit-ex1-en').value = wordObj.example_1_en || '';
+    document.getElementById('edit-ex2-pl').value = wordObj.example_2_pl || '';
+    document.getElementById('edit-ex2-en').value = wordObj.example_2_en || '';
 
     elements.editModal.classList.remove('hidden');
 };
@@ -317,19 +338,22 @@ function closeEditModal() {
 }
 
 function saveEditedWord() {
-    const id = elements.editId.value;
+    const id = document.getElementById('edit-id').value;
     const index = stagedWords.findIndex(w => w.id === id);
 
     if (index !== -1) {
         stagedWords[index] = {
             id: id,
-            word_pl: elements.editWord.value.trim(),
-            root_pl: elements.editRoot.value.trim(),
-            translation_en: elements.editTranslation.value.trim(),
-            example_1_pl: elements.editEx1Pl.value.trim(),
-            example_1_en: elements.editEx1En.value.trim(),
-            example_2_pl: elements.editEx2Pl.value.trim(),
-            example_2_en: elements.editEx2En.value.trim()
+            word_pl: document.getElementById('edit-word').value.trim(),
+            root_pl: document.getElementById('edit-root').value.trim(),
+            root_translation_en: document.getElementById('edit-root-translation').value.trim(),
+            part_of_speech: document.getElementById('edit-pos').value.trim(),
+            translation_en: document.getElementById('edit-translation').value.trim(),
+            translation_es: document.getElementById('edit-translation-es').value.trim(),
+            example_1_pl: document.getElementById('edit-ex1-pl').value.trim(),
+            example_1_en: document.getElementById('edit-ex1-en').value.trim(),
+            example_2_pl: document.getElementById('edit-ex2-pl').value.trim(),
+            example_2_en: document.getElementById('edit-ex2-en').value.trim()
         };
         updateUI();
         closeEditModal();
