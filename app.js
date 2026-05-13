@@ -189,7 +189,6 @@ async function callGeminiAPI(word, apiKey, customInstruction, model) {
   "translation_en": "string",
   "translation_es": "string",
   "root_pl": "string",
-  "root_translation_en": "string",
   "part_of_speech": "string (e.g., Noun, Verb, Adjective)",
   "example_1_pl": "string",
   "example_1_en": "string",
@@ -274,7 +273,7 @@ function updateUI() {
                             <h3 class="text-xl font-bold text-blue-400">${escapeHTML(wordObj.word_pl)}</h3>
                             <span class="px-2 py-0.5 rounded text-xs font-semibold bg-gray-600 text-gray-200">${escapeHTML(wordObj.part_of_speech)}</span>
                         </div>
-                        <p class="text-sm text-gray-400 mt-1">Root: <span class="text-gray-300 font-medium">${escapeHTML(wordObj.root_pl)}</span> | ${escapeHTML(wordObj.root_translation_en)}</p>
+                        <p class="text-sm text-gray-400 mt-1">Root: <span class="text-gray-300 font-medium">${escapeHTML(wordObj.root_pl)}</span></p>
                     </div>
 
                     <div class="flex space-x-2 mt-2 sm:mt-0 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
@@ -288,18 +287,18 @@ function updateUI() {
                 </div>
 
                 <div class="mb-3 bg-gray-800 p-3 rounded-md border border-gray-600">
-                    <p class="text-md font-medium text-gray-200">🇬🇧 ${escapeHTML(wordObj.translation_en)}</p>
-                    <p class="text-md font-medium text-gray-300">🇪🇸 ${escapeHTML(wordObj.translation_es)}</p>
+                    <p class="text-md font-medium text-gray-200">EN: ${escapeHTML(wordObj.translation_en)}</p>
+                    <p class="text-md font-medium text-gray-300">ES: ${escapeHTML(wordObj.translation_es)}</p>
                 </div>
 
                 <div class="text-sm space-y-3 text-gray-300 pl-1">
                     <div>
                         <p class="font-medium text-gray-200"><span class="font-bold text-gray-400 mr-1">1.</span>${escapeHTML(wordObj.example_1_pl)}</p>
-                        <p class="text-gray-400 italic text-xs mt-0.5">🇬🇧 ${escapeHTML(wordObj.example_1_en)}</p>
+                        <p class="text-gray-400 italic text-xs mt-0.5">EN: ${escapeHTML(wordObj.example_1_en)}</p>
                     </div>
                     <div>
                         <p class="font-medium text-gray-200"><span class="font-bold text-gray-400 mr-1">2.</span>${escapeHTML(wordObj.example_2_pl)}</p>
-                        <p class="text-gray-400 italic text-xs mt-0.5">🇬🇧 ${escapeHTML(wordObj.example_2_en)}</p>
+                        <p class="text-gray-400 italic text-xs mt-0.5">EN: ${escapeHTML(wordObj.example_2_en)}</p>
                     </div>
                 </div>`;
             elements.wordsContainer.appendChild(card);
@@ -321,7 +320,6 @@ window.openEditModal = function(id) {
     document.getElementById('edit-id').value = wordObj.id;
     document.getElementById('edit-word').value = wordObj.word_pl || '';
     document.getElementById('edit-root').value = wordObj.root_pl || '';
-    document.getElementById('edit-root-translation').value = wordObj.root_translation_en || '';
     document.getElementById('edit-pos').value = wordObj.part_of_speech || '';
     document.getElementById('edit-translation').value = wordObj.translation_en || '';
     document.getElementById('edit-translation-es').value = wordObj.translation_es || '';
@@ -346,7 +344,6 @@ function saveEditedWord() {
             id: id,
             word_pl: document.getElementById('edit-word').value.trim(),
             root_pl: document.getElementById('edit-root').value.trim(),
-            root_translation_en: document.getElementById('edit-root-translation').value.trim(),
             part_of_speech: document.getElementById('edit-pos').value.trim(),
             translation_en: document.getElementById('edit-translation').value.trim(),
             translation_es: document.getElementById('edit-translation-es').value.trim(),

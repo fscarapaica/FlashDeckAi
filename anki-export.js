@@ -1,14 +1,4 @@
-
-// Ensure genanki namespace exists to prevent reference errors, accommodating both UMD and global class setups
-if (typeof window.genanki === 'undefined') {
-    window.genanki = {
-        Model: typeof Model !== 'undefined' ? Model : null,
-        Deck: typeof Deck !== 'undefined' ? Deck : null,
-        Note: typeof Note !== 'undefined' ? Note : null,
-        Package: typeof Package !== 'undefined' ? Package : null
-    };
-}
-// Wait for everything to load, including genanki, sql.js, jszip, etc.
+// Wait for everything to load, including sql.js
 document.addEventListener('DOMContentLoaded', () => {
 
     const exportAnkiBtn = document.getElementById('export-anki-btn');
@@ -58,29 +48,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
-
-// Ensure genanki namespace exists for compatibility with existing export logic
-if (typeof window.genanki === 'undefined') {
-    window.genanki = {
-        Model: typeof Model !== 'undefined' ? Model : null,
-        Deck: typeof Deck !== 'undefined' ? Deck : null,
-        Note: typeof Note !== 'undefined' ? Note : null,
-        Package: typeof Package !== 'undefined' ? Package : null
-    };
-}
-
 function exportToAnki(wordsArray, deckName) {
+    // Safely resolve Anki classes whether they are globally available or in a 'genanki' namespace
+    const GenankiModel = typeof Model !== 'undefined' ? Model : window.genanki.Model;
+    const GenankiDeck = typeof Deck !== 'undefined' ? Deck : window.genanki.Deck;
+    const GenankiNote = typeof Note !== 'undefined' ? Note : window.genanki.Note;
+    const GenankiPackage = typeof Package !== 'undefined' ? Package : window.genanki.Package;
+
     // 1. Define the Model
     // We need a stable Model ID for Anki to recognize the note type.
     const MODEL_ID = 1690000001;
 
-            const model = new window.genanki.Model({
+    const model = new GenankiModel({
         name: 'Polish Vocabulary Model v2',
         id: MODEL_ID.toString(),
         flds: [
             { name: 'Word' },
             { name: 'Root' },
-            { name: 'RootTranslation' },
             { name: 'PartOfSpeech' },
             { name: 'TranslationEN' },
             { name: 'TranslationES' },
@@ -90,26 +74,25 @@ function exportToAnki(wordsArray, deckName) {
             { name: 'Example2_EN' }
         ],
         req: [
-            [0, 'all', [0]]
+            [0, 'all', [0]] // Require 'Word' field
         ],
         tmpls: [
             {
                 name: 'Card 1',
-                qfmt: `<div class="word">{{Word}}</div>
-{{tts pl_PL:Word}}`,
+                qfmt: `<div class="word">{{Word}}</div>\n{{tts pl_PL:Word}}`,
                 afmt: `<div class="word">{{Word}}</div>
 <div class="pos-gender">{{PartOfSpeech}}</div>
-<div class="root">Root: {{Root}} | {{RootTranslation}}</div>
-<div class="translation-en">🇬🇧 {{TranslationEN}}</div>
-<div class="translation-es">🇪🇸 {{TranslationES}}</div>
+<div class="root">Root: {{Root}}</div>
+<div class="translation-en">EN: {{TranslationEN}}</div>
+<div class="translation-es">ES: {{TranslationES}}</div>
 <hr>
 <div class="example">{{Example1_PL}}</div>
 {{tts pl_PL:Example1_PL}}
-<div class="example-trans">🇬🇧 {{Example1_EN}}</div>
+<div class="example-trans">EN: {{Example1_EN}}</div>
 <hr>
 <div class="example">{{Example2_PL}}</div>
 {{tts pl_PL:Example2_PL}}
-<div class="example-trans">🇬🇧 {{Example2_EN}}</div>`
+<div class="example-trans">EN: {{Example2_EN}}</div>`
             }
         ],
         css: `.card {
@@ -134,17 +117,16 @@ function exportToAnki(wordsArray, deckName) {
     // Generate a consistent Deck ID based on the name so it updates existing deck
     const DECK_ID = hashString(deckName);
 
-    const deck = new window.genanki.Deck(DECK_ID.toString(), deckName);
+    const deck = new GenankiDeck(DECK_ID.toString(), deckName);
 
     // 3. Add Notes (Cards) to the Deck
     wordsArray.forEach(wordObj => {
-        // We use the unique 'id' from our state as the GUID so Anki knows it's the same card if updated
-        const note = new window.genanki.Note({
-            model: model,
-            fields: [
+        // Correct initialization of Note class using positional arguments for genanki-js
+        const note = new GenankiNote(
+            model,
+            [
                 wordObj.word_pl || '',
                 wordObj.root_pl || '',
-                wordObj.root_translation_en || '',
                 wordObj.part_of_speech || '',
                 wordObj.translation_en || '',
                 wordObj.translation_es || '',
@@ -153,13 +135,14 @@ function exportToAnki(wordsArray, deckName) {
                 wordObj.example_2_pl || '',
                 wordObj.example_2_en || ''
             ],
-            guid: wordObj.id // Preserving ID to prevent duplicates
-        });
+            null, // tags
+            wordObj.id // guid
+        );
         deck.addNote(note);
     });
 
     // 4. Create Package and Export
-    const pkg = new window.genanki.Package();
+    const pkg = new GenankiPackage();
     pkg.addDeck(deck);
 
     // Save to file
