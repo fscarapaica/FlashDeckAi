@@ -16,6 +16,7 @@ const elements = {
     wordCount: document.getElementById('word-count'),
     exportAnkiBtn: document.getElementById('export-anki-btn'),
     systemPrompt: document.getElementById('system-prompt'),
+    modelSelect: document.getElementById('gemini-model-select'),
 
     // Edit Modal Elements
     editModal: document.getElementById('edit-modal'),
@@ -39,6 +40,12 @@ function init() {
         elements.apiKeyInput.value = savedKey;
     }
 
+    // Load saved model preference
+    const savedModel = localStorage.getItem('gemini_model_pref');
+    if (savedModel) {
+        elements.modelSelect.value = savedModel;
+    }
+
     // Event Listeners
     elements.saveApiKeyBtn.addEventListener('click', saveApiKey);
     elements.generateBtn.addEventListener('click', handleGenerate);
@@ -46,6 +53,11 @@ function init() {
     elements.importJsonInput.addEventListener('change', importJson);
     elements.cancelEditBtn.addEventListener('click', closeEditModal);
     elements.saveEditBtn.addEventListener('click', saveEditedWord);
+
+    // Save model choice on change
+    elements.modelSelect.addEventListener('change', (e) => {
+        localStorage.setItem('gemini_model_pref', e.target.value);
+    });
 
     // We bind export Anki later in anki-export.js, but check if we need to disable it
     updateUI();
@@ -105,7 +117,8 @@ async function handleGenerate() {
 
     try {
         const customPrompt = elements.systemPrompt.value;
-        const data = await callGeminiAPI(word, apiKey, customPrompt);
+        const selectedModel = elements.modelSelect.value || 'gemini-1.5-flash';
+        const data = await callGeminiAPI(word, apiKey, customPrompt, selectedModel);
 
         // Add unique ID for tracking/Anki GUID
         data.id = generateUniqueId();
@@ -128,8 +141,8 @@ async function handleGenerate() {
 }
 
 // Call Gemini API
-async function callGeminiAPI(word, apiKey, customInstruction) {
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+async function callGeminiAPI(word, apiKey, customInstruction, model) {
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     const jsonSchemaTemplate = `
 {
@@ -194,28 +207,41 @@ function updateUI() {
         elements.emptyState.classList.add('hidden');
         elements.wordsContainer.innerHTML = '';
 
+        // Helper to safely escape HTML to prevent XSS
+        const escapeHTML = (str) => {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        };
+
         stagedWords.forEach((wordObj, index) => {
             const card = document.createElement('div');
             card.className = 'bg-gray-700 p-4 rounded-lg border border-gray-600 relative group';
 
+            const safeId = escapeHTML(wordObj.id);
+
             card.innerHTML = `
                 <div class="flex justify-between items-start mb-2">
                     <div>
-                        <h3 class="text-lg font-bold text-gray-100">${wordObj.word_pl}</h3>
-                        <p class="text-sm text-gray-400">Root: ${wordObj.root_pl} | ${wordObj.translation_en}</p>
+                        <h3 class="text-lg font-bold text-gray-100">${escapeHTML(wordObj.word_pl)}</h3>
+                        <p class="text-sm text-gray-400">Root: ${escapeHTML(wordObj.root_pl)} | ${escapeHTML(wordObj.translation_en)}</p>
                     </div>
                     <div class="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onclick="openEditModal('${wordObj.id}')" class="text-blue-400 hover:text-blue-300 p-1">
+                        <button onclick="openEditModal('${safeId}')" class="text-blue-400 hover:text-blue-300 p-1">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                         </button>
-                        <button onclick="deleteWord('${wordObj.id}')" class="text-red-400 hover:text-red-300 p-1">
+                        <button onclick="deleteWord('${safeId}')" class="text-red-400 hover:text-red-300 p-1">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     </div>
                 </div>
                 <div class="text-sm mt-3 space-y-1 text-gray-300">
-                    <p><strong class="text-gray-200">1.</strong> ${wordObj.example_1_pl} <br><span class="text-gray-400 italic">${wordObj.example_1_en}</span></p>
-                    <p><strong class="text-gray-200">2.</strong> ${wordObj.example_2_pl} <br><span class="text-gray-400 italic">${wordObj.example_2_en}</span></p>
+                    <p><strong class="text-gray-200">1.</strong> ${escapeHTML(wordObj.example_1_pl)} <br><span class="text-gray-400 italic">${escapeHTML(wordObj.example_1_en)}</span></p>
+                    <p><strong class="text-gray-200">2.</strong> ${escapeHTML(wordObj.example_2_pl)} <br><span class="text-gray-400 italic">${escapeHTML(wordObj.example_2_en)}</span></p>
                 </div>
             `;
             elements.wordsContainer.appendChild(card);
