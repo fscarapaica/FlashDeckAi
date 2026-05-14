@@ -50,102 +50,162 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function exportToAnki(wordsArray, deckName) {
     // Safely resolve Anki classes whether they are globally available or in a 'genanki' namespace
-    const GenankiModel = typeof Model !== 'undefined' ? Model : window.genanki.Model;
-    const GenankiDeck = typeof Deck !== 'undefined' ? Deck : window.genanki.Deck;
-    const GenankiNote = typeof Note !== 'undefined' ? Note : window.genanki.Note;
-    const GenankiPackage = typeof Package !== 'undefined' ? Package : window.genanki.Package;
+    const GenankiModel = typeof Model !== 'undefined' ? Model : (window.genanki ? window.genanki.Model : window.Model);
+    const GenankiDeck = typeof Deck !== 'undefined' ? Deck : (window.genanki ? window.genanki.Deck : window.Deck);
+    const GenankiNote = typeof Note !== 'undefined' ? Note : (window.genanki ? window.genanki.Note : window.Note);
+    const GenankiPackage = typeof Package !== 'undefined' ? Package : (window.genanki ? window.genanki.Package : window.Package);
 
-    // 1. Define the Model
-    // We need a stable Model ID for Anki to recognize the note type.
-    const MODEL_ID = 1690000001;
+    const { mainLang, targets } = window.getSelectedLanguages();
+
+    // Dynamically build fields
+    const flds = [
+        { name: 'Word' },
+        { name: 'Root' },
+        { name: 'PartOfSpeech' }
+    ];
+
+    targets.forEach(t => {
+        if (t.translation) {
+            flds.push({ name: `Translation_${t.lang.toUpperCase()}` });
+        }
+        if (t.examples) {
+            flds.push({ name: `Example1_${mainLang.toUpperCase()}` });
+            flds.push({ name: `Example1_${t.lang.toUpperCase()}` });
+            flds.push({ name: `Example2_${mainLang.toUpperCase()}` });
+            flds.push({ name: `Example2_${t.lang.toUpperCase()}` });
+        }
+    });
+
+    // Remove duplicate example keys from flds (since multiple target languages might add the same main language example)
+    const uniqueFlds = [];
+    const seenNames = new Set();
+    flds.forEach(f => {
+        if (!seenNames.has(f.name)) {
+            seenNames.add(f.name);
+            uniqueFlds.push(f);
+        }
+    });
+
+    // Build qfmt and afmt
+    const qfmt = `<div class="word">{{Word}}</div>
+{{tts ${mainLang}_${mainLang.toUpperCase()}:Word}}`;
+
+    let afmt = `<div class="word">{{Word}}</div>
+<div class="pos-gender">{{PartOfSpeech}}</div>
+<div class="root">Root: {{Root}}</div>`;
+
+    targets.forEach(t => {
+        if (t.translation) {
+            afmt += `
+<div class="translation-${t.lang}">${t.lang.toUpperCase()}: {{Translation_${t.lang.toUpperCase()}}}</div>`;
+        }
+    });
+
+    // We will use JS for the back side audio to avoid autoplay
+    let hasExamples = false;
+    [1, 2].forEach(num => {
+        const exMainKey = `Example${num}_${mainLang.toUpperCase()}`;
+        if (uniqueFlds.find(f => f.name === exMainKey)) {
+            hasExamples = true;
+            afmt += `
+<hr>
+<div class="example" id="ex${num}">{{${exMainKey}}}</div>`;
+            afmt += `
+<button class="play-btn" onclick="playAudio('ex${num}')">▶ Play Audio</button>`;
+
+            targets.forEach(t => {
+                if (t.examples) {
+                    const exTgtKey = `Example${num}_${t.lang.toUpperCase()}`;
+                    if (uniqueFlds.find(f => f.name === exTgtKey)) {
+                        afmt += `
+<div class="example-trans">{{${exTgtKey}}}</div>`;
+                    }
+                }
+            });
+        }
+    });
+
+    if (hasExamples) {
+        afmt += `
+<script>
+function playAudio(elementId) {
+    var text = document.getElementById(elementId).innerText;
+    var msg = new SpeechSynthesisUtterance(text);
+    msg.lang = '${mainLang}-${mainLang.toUpperCase()}';
+    window.speechSynthesis.speak(msg);
+}
+</script>`;
+    }
+
+    const MODEL_ID = 1690000002;
 
     const model = new GenankiModel({
-        name: 'Polish Vocabulary Model v2',
+        name: `Dynamic Vocabulary Model ${mainLang.toUpperCase()}`,
         id: MODEL_ID.toString(),
-        flds: [
-            { name: 'Word' },
-            { name: 'Root' },
-            { name: 'PartOfSpeech' },
-            { name: 'TranslationEN' },
-            { name: 'TranslationES' },
-            { name: 'Example1_PL' },
-            { name: 'Example1_EN' },
-            { name: 'Example2_PL' },
-            { name: 'Example2_EN' }
-        ],
+        flds: uniqueFlds,
         req: [
-            [0, 'all', [0]] // Require 'Word' field
+            [0, 'all', [0]]
         ],
         tmpls: [
             {
                 name: 'Card 1',
-                qfmt: `<div class="word">{{Word}}</div>\n{{tts pl_PL:Word}}`,
-                afmt: `<div class="word">{{Word}}</div>
-<div class="pos-gender">{{PartOfSpeech}}</div>
-<div class="root">Root: {{Root}}</div>
-<div class="translation-en">EN: {{TranslationEN}}</div>
-<div class="translation-es">ES: {{TranslationES}}</div>
-<hr>
-<div class="example">{{Example1_PL}}</div>
-{{tts pl_PL:Example1_PL}}
-<div class="example-trans">EN: {{Example1_EN}}</div>
-<hr>
-<div class="example">{{Example2_PL}}</div>
-{{tts pl_PL:Example2_PL}}
-<div class="example-trans">EN: {{Example2_EN}}</div>`
+                qfmt: qfmt,
+                afmt: afmt
             }
         ],
         css: `.card {
             font-family: Arial, sans-serif;
             font-size: 20px;
-            text-align: left;
-            color: #202020;
-            background-color: #f9f9f9;
+            text-align: center;
+            color: #e0e0e0;
+            background-color: #202020;
             padding: 20px;
         }
-        .word { font-size: 32px; font-weight: bold; color: #1a56db; margin-bottom: 5px; }
-        .pos-gender { font-size: 16px; font-weight: bold; color: #555; margin-bottom: 10px; }
-        .root { font-size: 16px; color: #555; margin-bottom: 15px; }
-        .translation-en { font-size: 22px; font-weight: bold; color: #202020; margin-bottom: 5px; }
-        .translation-es { font-size: 20px; color: #444; margin-bottom: 15px; }
+        .word { font-size: 32px; font-weight: bold; color: #4b8ffd; margin-bottom: 5px; }
+        .pos-gender { font-size: 16px; font-weight: bold; color: #aaa; margin-bottom: 10px; }
+        .root { font-size: 16px; color: #aaa; margin-bottom: 15px; }
+        [class^="translation-"] { font-size: 20px; font-weight: bold; color: #e0e0e0; margin-bottom: 5px; }
         .example { font-size: 20px; margin-top: 15px; font-weight: 500; }
-        .example-trans { font-size: 16px; color: #666; font-style: italic; margin-top: 3px; }
-        hr { border: 0; border-bottom: 1px solid #ccc; margin: 20px 0; }`
+        .example-trans { font-size: 16px; color: #999; font-style: italic; margin-top: 3px; }
+        hr { border: 0; border-bottom: 1px solid #444; margin: 20px 0; }
+        .play-btn { background: #333; color: #fff; border: 1px solid #555; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 14px; margin-top: 5px; }
+        .play-btn:hover { background: #444; }`
     });
 
-    // 2. Define the Deck
-    // Generate a consistent Deck ID based on the name so it updates existing deck
     const DECK_ID = hashString(deckName);
-
     const deck = new GenankiDeck(DECK_ID.toString(), deckName);
 
-    // 3. Add Notes (Cards) to the Deck
     wordsArray.forEach(wordObj => {
-        // Correct initialization of Note class using positional arguments for genanki-js
+        const fieldValues = uniqueFlds.map(f => {
+            if (f.name === 'Word') return wordObj[`word_${mainLang}`] || '';
+            if (f.name === 'Root') return wordObj[`root_${mainLang}`] || '';
+            if (f.name === 'PartOfSpeech') return wordObj.part_of_speech || '';
+
+            if (f.name.startsWith('Translation_')) {
+                const lang = f.name.split('_')[1].toLowerCase();
+                return wordObj[`translation_${lang}`] || '';
+            }
+            if (f.name.startsWith('Example')) {
+                const parts = f.name.split('_'); // e.g. Example1_PL
+                const num = parts[0].replace('Example', ''); // 1
+                const lang = parts[1].toLowerCase(); // pl
+                return wordObj[`example_${num}_${lang}`] || '';
+            }
+            return '';
+        });
+
         const note = new GenankiNote(
             model,
-            [
-                wordObj.word_pl || '',
-                wordObj.root_pl || '',
-                wordObj.part_of_speech || '',
-                wordObj.translation_en || '',
-                wordObj.translation_es || '',
-                wordObj.example_1_pl || '',
-                wordObj.example_1_en || '',
-                wordObj.example_2_pl || '',
-                wordObj.example_2_en || ''
-            ],
-            null, // tags
-            wordObj.id // guid
+            fieldValues,
+            null,
+            wordObj.id
         );
         deck.addNote(note);
     });
 
-    // 4. Create Package and Export
     const pkg = new GenankiPackage();
     pkg.addDeck(deck);
 
-    // Save to file
     const filename = `${deckName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.apkg`;
     pkg.writeToFile(filename);
 }

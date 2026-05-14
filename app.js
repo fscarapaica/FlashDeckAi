@@ -26,10 +26,11 @@ const elements = {
     editTranslation: document.getElementById('edit-translation'),
     editEx1Pl: document.getElementById('edit-ex1-pl'),
     editEx1En: document.getElementById('edit-ex1-en'),
-    editEx2Pl: document.getElementById('edit-ex2-pl'),
-    editEx2En: document.getElementById('edit-ex2-en'),
     saveEditBtn: document.getElementById('save-edit-btn'),
-    cancelEditBtn: document.getElementById('cancel-edit-btn')
+    cancelEditBtn: document.getElementById('cancel-edit-btn'),
+    mainLanguage: document.getElementById('main-language'),
+    targetLanguagesContainer: document.getElementById('target-languages-container'),
+    dynamicEditFields: document.getElementById('dynamic-edit-fields')
 };
 
 // Initialize App
@@ -40,6 +41,18 @@ function init() {
         elements.apiKeyInput.value = savedKey;
         fetchModels(savedKey);
     }
+
+    // Load stagedWords from localStorage
+    const savedWords = localStorage.getItem('anki_staged_words');
+    if (savedWords) {
+        try {
+            stagedWords = JSON.parse(savedWords);
+        } catch(e) {
+            console.error("Could not parse saved words");
+        }
+    }
+
+    setupLanguageCheckboxes();
 
     // Event Listeners
     elements.saveApiKeyBtn.addEventListener('click', saveApiKey);
@@ -169,6 +182,7 @@ async function handleGenerate() {
         elements.wordInput.value = '';
         showStatus(`Successfully generated data for "${word}"`, 'success');
         updateUI();
+        saveState();
 
     } catch (error) {
         console.error(error);
@@ -183,20 +197,8 @@ async function handleGenerate() {
 async function callGeminiAPI(word, apiKey, customInstruction, model) {
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-    const jsonSchemaTemplate = `
-{
-  "word_pl": "string",
-  "translation_en": "string",
-  "translation_es": "string",
-  "root_pl": "string",
-  "part_of_speech": "string (e.g., Noun, Verb, Adjective)",
-  "example_1_pl": "string",
-  "example_1_en": "string",
-  "example_2_pl": "string",
-  "example_2_en": "string",
-  "error": "string (only if invalid)"
-}
-`;
+    const schemaObj = generateDynamicSchema();
+    const jsonSchemaTemplate = JSON.stringify(schemaObj, null, 2);
 
     const fullSystemInstruction = `${customInstruction}\n\n${jsonSchemaTemplate}`;
 
@@ -270,10 +272,10 @@ function updateUI() {
             card.innerHTML = `                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
                     <div class="flex-1">
                         <div class="flex items-center space-x-3">
-                            <h3 class="text-xl font-bold text-blue-400">${escapeHTML(wordObj.word_pl)}</h3>
+                            <h3 class="text-xl font-bold text-blue-400">${escapeHTML(wordObj[Object.keys(wordObj).find(k => k.startsWith('word_'))])}</h3>
                             <span class="px-2 py-0.5 rounded text-xs font-semibold bg-gray-600 text-gray-200">${escapeHTML(wordObj.part_of_speech)}</span>
                         </div>
-                        <p class="text-sm text-gray-400 mt-1">Root: <span class="text-gray-300 font-medium">${escapeHTML(wordObj.root_pl)}</span></p>
+                        <p class="text-sm text-gray-400 mt-1">Root: <span class="text-gray-300 font-medium">${escapeHTML(wordObj[Object.keys(wordObj).find(k => k.startsWith('root_'))] || '')}</span></p>
                     </div>
 
                     <div class="flex space-x-2 mt-2 sm:mt-0 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
@@ -287,19 +289,34 @@ function updateUI() {
                 </div>
 
                 <div class="mb-3 bg-gray-800 p-3 rounded-md border border-gray-600">
-                    <p class="text-md font-medium text-gray-200">EN: ${escapeHTML(wordObj.translation_en)}</p>
-                    <p class="text-md font-medium text-gray-300">ES: ${escapeHTML(wordObj.translation_es)}</p>
+                    ${Object.keys(wordObj).filter(k => k.startsWith('translation_')).map(k => {
+                        const lang = k.split('_')[1].toUpperCase();
+                        return `<p class="text-md font-medium text-gray-200">${lang}: ${escapeHTML(wordObj[k])}</p>`;
+                    }).join('')}
                 </div>
 
                 <div class="text-sm space-y-3 text-gray-300 pl-1">
-                    <div>
-                        <p class="font-medium text-gray-200"><span class="font-bold text-gray-400 mr-1">1.</span>${escapeHTML(wordObj.example_1_pl)}</p>
-                        <p class="text-gray-400 italic text-xs mt-0.5">EN: ${escapeHTML(wordObj.example_1_en)}</p>
-                    </div>
-                    <div>
-                        <p class="font-medium text-gray-200"><span class="font-bold text-gray-400 mr-1">2.</span>${escapeHTML(wordObj.example_2_pl)}</p>
-                        <p class="text-gray-400 italic text-xs mt-0.5">EN: ${escapeHTML(wordObj.example_2_en)}</p>
-                    </div>
+                    ${(() => {
+                        const mainLangKey = Object.keys(wordObj).find(k => k.startsWith('word_'));
+                        const mainLang = mainLangKey ? mainLangKey.split('_')[1] : 'pl';
+                        let exHtml = '';
+                        [1, 2].forEach(num => {
+                            if (wordObj[`example_${num}_${mainLang}`]) {
+                                exHtml += `<div>
+                                    <p class="font-medium text-gray-200"><span class="font-bold text-gray-400 mr-1">${num}.</span>${escapeHTML(wordObj[`example_${num}_${mainLang}`])}</p>`;
+
+                                // Find target language examples
+                                Object.keys(wordObj).forEach(k => {
+                                    if (k.startsWith(`example_${num}_`) && !k.endsWith(`_${mainLang}`)) {
+                                        const lang = k.split('_')[2].toUpperCase();
+                                        exHtml += `<p class="text-gray-400 italic text-xs mt-0.5">${lang}: ${escapeHTML(wordObj[k])}</p>`;
+                                    }
+                                });
+                                exHtml += `</div>`;
+                            }
+                        });
+                        return exHtml;
+                    })()}
                 </div>`;
             elements.wordsContainer.appendChild(card);
         });
@@ -310,6 +327,7 @@ function updateUI() {
 window.deleteWord = function(id) {
     stagedWords = stagedWords.filter(w => w.id !== id);
     updateUI();
+    saveState();
 };
 
 // Edit Modal Functions
@@ -318,15 +336,55 @@ window.openEditModal = function(id) {
     if (!wordObj) return;
 
     document.getElementById('edit-id').value = wordObj.id;
-    document.getElementById('edit-word').value = wordObj.word_pl || '';
-    document.getElementById('edit-root').value = wordObj.root_pl || '';
-    document.getElementById('edit-pos').value = wordObj.part_of_speech || '';
-    document.getElementById('edit-translation').value = wordObj.translation_en || '';
-    document.getElementById('edit-translation-es').value = wordObj.translation_es || '';
-    document.getElementById('edit-ex1-pl').value = wordObj.example_1_pl || '';
-    document.getElementById('edit-ex1-en').value = wordObj.example_1_en || '';
-    document.getElementById('edit-ex2-pl').value = wordObj.example_2_pl || '';
-    document.getElementById('edit-ex2-en').value = wordObj.example_2_en || '';
+
+    // Clear and build dynamic fields
+    elements.dynamicEditFields.innerHTML = '';
+
+    // Always show word, root, pos
+    const mainWordKey = Object.keys(wordObj).find(k => k.startsWith('word_')) || 'word_pl';
+    const mainRootKey = Object.keys(wordObj).find(k => k.startsWith('root_')) || 'root_pl';
+
+    const baseFields = [
+        { key: mainWordKey, label: 'Target Word' },
+        { key: mainRootKey, label: 'Root / Base Form' },
+        { key: 'part_of_speech', label: 'Part of Speech' }
+    ];
+
+    // Add translations
+    Object.keys(wordObj).filter(k => k.startsWith('translation_')).forEach(k => {
+        baseFields.push({ key: k, label: `Translation (${k.split('_')[1].toUpperCase()})` });
+    });
+
+    // Inject base fields
+    baseFields.forEach(f => {
+        elements.dynamicEditFields.innerHTML += `
+            <div>
+                <label class="block text-sm font-medium text-gray-300">${f.label}</label>
+                <input type="text" id="edit-${f.key}" data-key="${f.key}" value="${(wordObj[f.key] || '').replace(/"/g, '&quot;')}" class="dynamic-edit-input mt-1 w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500">
+            </div>
+        `;
+    });
+
+    // Add examples
+    elements.dynamicEditFields.innerHTML += `<div class="col-span-2 space-y-4 mt-2">`;
+    [1, 2].forEach(num => {
+        const exampleKeys = Object.keys(wordObj).filter(k => k.startsWith(`example_${num}_`));
+        if (exampleKeys.length > 0) {
+            let exHtml = `<div class="p-3 bg-gray-900 rounded border border-gray-700 space-y-2">
+                <label class="block text-sm font-bold text-gray-300 border-b border-gray-700 pb-1">Example ${num}</label>`;
+            exampleKeys.forEach(k => {
+                const lang = k.split('_')[2].toUpperCase();
+                exHtml += `
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-bold text-gray-500 w-8">${lang}</span>
+                        <input type="text" id="edit-${k}" data-key="${k}" value="${(wordObj[k] || '').replace(/"/g, '&quot;')}" class="dynamic-edit-input flex-1 px-3 py-1.5 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500 text-sm">
+                    </div>`;
+            });
+            exHtml += `</div>`;
+            elements.dynamicEditFields.innerHTML += exHtml;
+        }
+    });
+    elements.dynamicEditFields.innerHTML += `</div>`;
 
     elements.editModal.classList.remove('hidden');
 };
@@ -340,19 +398,16 @@ function saveEditedWord() {
     const index = stagedWords.findIndex(w => w.id === id);
 
     if (index !== -1) {
-        stagedWords[index] = {
-            id: id,
-            word_pl: document.getElementById('edit-word').value.trim(),
-            root_pl: document.getElementById('edit-root').value.trim(),
-            part_of_speech: document.getElementById('edit-pos').value.trim(),
-            translation_en: document.getElementById('edit-translation').value.trim(),
-            translation_es: document.getElementById('edit-translation-es').value.trim(),
-            example_1_pl: document.getElementById('edit-ex1-pl').value.trim(),
-            example_1_en: document.getElementById('edit-ex1-en').value.trim(),
-            example_2_pl: document.getElementById('edit-ex2-pl').value.trim(),
-            example_2_en: document.getElementById('edit-ex2-en').value.trim()
-        };
+        const inputs = elements.dynamicEditFields.querySelectorAll('.dynamic-edit-input');
+        const updatedWord = { id: id };
+
+        inputs.forEach(input => {
+            updatedWord[input.getAttribute('data-key')] = input.value.trim();
+        });
+
+        stagedWords[index] = updatedWord;
         updateUI();
+        saveState();
         closeEditModal();
     }
 }
@@ -410,7 +465,91 @@ function importJson(event) {
 
 // Expose state and init for other scripts
 window.getStagedWords = () => stagedWords;
+window.getSelectedLanguages = getSelectedLanguages;
 window.getDeckName = () => elements.deckNameInput.value.trim() || 'Polish Vocabulary';
 
 // Start app
 document.addEventListener('DOMContentLoaded', init);
+
+
+function setupLanguageCheckboxes() {
+    if (!elements.targetLanguagesContainer) return;
+
+    elements.targetLanguagesContainer.addEventListener('change', (e) => {
+        if (e.target.classList.contains('lang-enable-cb')) {
+            const isChecked = e.target.checked;
+            const item = e.target.closest('.target-lang-item');
+            const optionsDiv = item.querySelector('.lang-options-div');
+
+            if (optionsDiv) {
+                if (isChecked) {
+                    optionsDiv.classList.remove('opacity-50', 'pointer-events-none');
+                    // Automatically check translation if enabled
+                    const transCb = optionsDiv.querySelector('.lang-trans-cb');
+                    if (transCb) transCb.checked = true;
+                } else {
+                    optionsDiv.classList.add('opacity-50', 'pointer-events-none');
+                }
+            }
+        }
+    });
+}
+
+function getSelectedLanguages() {
+    const mainLang = elements.mainLanguage ? elements.mainLanguage.value : 'pl';
+    const targets = [];
+
+    if (elements.targetLanguagesContainer) {
+        const items = elements.targetLanguagesContainer.querySelectorAll('.target-lang-item');
+        items.forEach(item => {
+            const enableCb = item.querySelector('.lang-enable-cb');
+            if (enableCb && enableCb.checked) {
+                const lang = enableCb.value;
+                const transCb = item.querySelector('.lang-trans-cb');
+                const exCb = item.querySelector('.lang-ex-cb');
+
+                targets.push({
+                    lang: lang,
+                    translation: transCb ? transCb.checked : true,
+                    examples: exCb ? exCb.checked : false
+                });
+            }
+        });
+    } else {
+        // Fallback for previous defaults
+        targets.push({ lang: 'en', translation: true, examples: true });
+        targets.push({ lang: 'es', translation: true, examples: false });
+    }
+
+    return { mainLang, targets };
+}
+
+function generateDynamicSchema() {
+    const { mainLang, targets } = getSelectedLanguages();
+
+    const schema = {
+        [`word_${mainLang}`]: "string",
+        [`root_${mainLang}`]: "string",
+        "part_of_speech": "string (e.g., Noun, Verb, Adjective)"
+    };
+
+    targets.forEach(t => {
+        if (t.translation) {
+            schema[`translation_${t.lang}`] = "string";
+        }
+        if (t.examples) {
+            schema[`example_1_${mainLang}`] = "string";
+            schema[`example_1_${t.lang}`] = "string";
+            schema[`example_2_${mainLang}`] = "string";
+            schema[`example_2_${t.lang}`] = "string";
+        }
+    });
+
+    schema["error"] = "string (only if invalid)";
+
+    return schema;
+}
+
+function saveState() {
+    localStorage.setItem('anki_staged_words', JSON.stringify(stagedWords));
+}
