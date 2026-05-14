@@ -27,57 +27,66 @@
         }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100 font-sans min-h-screen">
+<body class="bg-[#09090B] text-zinc-100 font-sans min-h-screen">
 
     <!-- Navbar -->
-    <nav class="bg-gray-800 shadow-md p-4 z-10 border-b border-gray-700 relative">
-        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center">
-            <h1 class="text-2xl font-bold text-blue-400 mb-4 md:mb-0">Anki AI Deck Maker</h1>
+    <nav class="bg-[#18181B] shadow-md p-4 z-10 border-b border-[#27272A] relative">
+        <div class="max-w-screen-xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
+            <h1 class="text-2xl font-extrabold text-[#F97316] mb-4 md:mb-0 tracking-tight">Anki AI Deck Maker</h1>
 
             <div class="flex items-center space-x-3 w-full md:w-auto overflow-x-auto no-scrollbar py-2 md:py-0">
-                <select id="gemini-model-select" class="px-3 py-1 border border-gray-600 bg-gray-700 text-gray-100 rounded-md text-sm appearance-none cursor-pointer focus:outline-none focus:border-blue-500 disabled:opacity-50" disabled>
+                <select id="gemini-model-select" class="px-3 py-1 border border-[#27272A] bg-[#09090B] text-zinc-100 rounded-xl text-sm appearance-none cursor-pointer focus:outline-none focus:border-[#F97316] disabled:opacity-50" disabled>
                     <option value="">Load API Key first...</option>
                 </select>
-                <input type="password" id="api-key" placeholder="Gemini API Key" class="px-3 py-1 border border-gray-600 bg-gray-700 text-gray-100 rounded-md text-sm w-48 focus:outline-none focus:border-blue-500">
-                <button id="save-api-key" class="text-sm bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-200 px-3 py-1 rounded transition whitespace-nowrap">Save Key</button>
+                <button id="prompt-settings-btn" class="flex items-center space-x-2 bg-[#09090B] hover:bg-[#27272A] text-zinc-300 px-3 py-1 rounded-xl transition-colors border border-[#27272A]">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span class="text-sm font-medium hidden sm:inline">Prompt Settings</span>
+                </button>
+                <input type="password" id="api-key" placeholder="Gemini API Key" class="px-3 py-1 border border-[#27272A] bg-[#09090B] text-zinc-100 rounded-xl text-sm w-48 focus:outline-none focus:border-[#F97316]">
+                <button id="save-api-key" class="text-sm bg-[#09090B] hover:bg-[#27272A] border border-[#27272A] text-zinc-100 px-3 py-1 rounded transition whitespace-nowrap">Save Key</button>
             </div>
         </div>
     </nav>
 
     <!-- Main Container -->
-    <main class="max-w-6xl mx-auto mt-8 px-4 grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <main class="max-w-screen-xl mx-auto mt-8 px-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         <!-- Left Column: Input and Deck Info -->
-        <div class="lg:col-span-2 space-y-6">
+        <div class="lg:col-span-4 space-y-6">
 
             <!-- Vocabulary Input Card -->
-            <div class="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
-                <h2 class="text-lg font-semibold mb-4 border-b border-gray-700 pb-2 text-gray-200">Add New Word</h2>
+            <div class="bg-[#18181B] p-6 rounded-2xl shadow-md border border-[#27272A]">
+                <h2 class="text-lg font-bold mb-4 border-b border-[#27272A] pb-2 text-zinc-100">Add New Word</h2>
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-300 mb-1">Target Word</label>
-                    <input type="text" id="polish-word-input" placeholder="Type a word..." class="w-full px-4 py-3 text-lg border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500 shadow-inner">
+                    <label class="block text-sm font-medium text-zinc-300 mb-1">Target Word</label>
+                    <input type="text" id="polish-word-input" placeholder="Type a word..." class="w-full px-4 py-3 text-lg border border-[#27272A] bg-[#09090B] text-zinc-100 rounded-xl focus:outline-none focus:border-[#F97316] shadow-inner">
                 </div>
-                <button id="generate-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                <button id="generate-btn" class="w-full bg-[#F97316] hover:bg-[#EA580C] text-white font-bold py-3 px-4 rounded-2xl transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
                     Generate Data
                 </button>
                 <div id="status-message" class="mt-3 text-sm hidden font-medium"></div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <!-- Deck Metadata Card -->
-                <div class="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700 flex flex-col justify-between">
+            <!-- Merged Settings -->
+            <div class="bg-[#18181B] p-6 rounded-2xl shadow-xl border border-[#27272A]">
+                <h2 class="text-lg font-bold mb-4 border-b border-[#27272A] pb-2 text-zinc-100">Settings</h2>
+                <div class="space-y-5">
+
                     <div>
-                        <h2 class="text-lg font-semibold mb-4 border-b border-gray-700 pb-2 text-gray-200">Deck Settings</h2>
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-300 mb-1">Deck Name</label>
-                            <input type="text" id="deck-name" placeholder="e.g., Polish Vocabulary" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500">
+
+                        <div class="mb-5">
+                            <label class="block text-sm font-medium text-zinc-300 mb-1">Deck Name</label>
+                            <input type="text" id="deck-name" placeholder="e.g., Polish Vocabulary" class="w-full px-3 py-2 border border-[#27272A] bg-[#09090B] text-zinc-100 rounded-xl focus:outline-none focus:border-[#F97316]">
                         </div>
 
                         <div class="space-y-3 pt-2">
-                            <label class="block text-sm font-medium text-gray-300">Project Data (JSON)</label>
+                            <label class="block text-sm font-medium text-zinc-300">Project Data (JSON)</label>
                             <div class="flex space-x-2">
-                                <button id="export-json-btn" class="flex-1 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-200 py-2 rounded-md transition text-xs font-medium">Export JSON</button>
-                                <label class="flex-1 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-200 py-2 rounded-md transition text-xs font-medium text-center cursor-pointer">
+                                <button id="export-json-btn" class="flex-1 bg-[#09090B] hover:bg-[#27272A] border border-[#27272A] text-zinc-100 py-2 rounded-xl transition text-xs font-medium">Export JSON</button>
+                                <label class="flex-1 bg-[#09090B] hover:bg-[#27272A] border border-[#27272A] text-zinc-100 py-2 rounded-xl transition text-xs font-medium text-center cursor-pointer">
                                     Load JSON
                                     <input type="file" id="import-json-file" accept=".json" class="hidden">
                                 </label>
@@ -85,25 +94,18 @@
                         </div>
                     </div>
 
-                    <div class="mt-6 pt-4 border-t border-gray-700">
-                         <button id="export-anki-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition shadow-md flex justify-center items-center">
+                    <div class="mt-6 pt-4 border-t border-[#27272A]">
+                         <button id="export-anki-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-2xl transition shadow-md flex justify-center items-center">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                             Export .apkg
                         </button>
                     </div>
-                </div>
-
-                <!-- LLM Settings Card -->
-                <div class="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
-                    <h2 class="text-lg font-semibold mb-4 border-b border-gray-700 pb-2 text-gray-200">LLM Settings</h2>
-
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-300 mb-1">System Prompt</label>
-                        <textarea id="system-prompt" rows="5" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500 text-xs">You are an expert Polish language tutor generating flashcards for an advanced student. The user will provide a Polish word. Return ONLY a raw JSON object matching the schema. Provide translations contextual examples B1/B2 level in English and Spanish. Identify the part of speech and gender if it is a noun. If the word is invalid, return a JSON object with ONLY an \"error\" key. No markdown formatting.</textarea>
 
 
-                        <label class="block text-sm font-medium text-gray-300 mb-1 mt-3">Main Language</label>
-                        <select id="main-language" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500 mb-3">
+
+
+                    <label class="block text-sm font-medium text-zinc-300 mb-1 mt-3">Main Language</label>
+                        <select id="main-language" class="w-full px-3 py-2 border border-[#27272A] bg-[#09090B] text-zinc-100 rounded-xl focus:outline-none focus:border-[#F97316] mb-3">
                             <option value="pl" selected>Polish</option>
                             <option value="en">English</option>
                             <option value="es">Spanish</option>
@@ -113,89 +115,77 @@
                             <option value="pt">Portuguese</option>
                         </select>
 
-                        <label class="block text-sm font-medium text-gray-300 mb-1 mt-2">Target Languages</label>
-                        <div id="target-languages-container" class="space-y-3 max-h-[250px] overflow-y-auto bg-gray-900 p-3 rounded border border-gray-600">
-                            <!-- Language Options -->
-                            <div class="target-lang-item border-b border-gray-700 pb-2">
-                                <label class="inline-flex items-center text-sm font-medium text-gray-200">
-                                    <input type="checkbox" class="lang-enable-cb form-checkbox h-4 w-4 text-blue-600 bg-gray-700 border-gray-600 rounded" value="en" checked>
-                                    <span class="ml-2">English (EN)</span>
-                                </label>
-                                <div class="ml-6 mt-1 flex space-x-4">
-                                    <label class="inline-flex items-center text-xs text-gray-400">
-                                        <input type="checkbox" class="lang-trans-cb form-checkbox h-3 w-3 text-green-500 bg-gray-700 border-gray-600 rounded" data-lang="en" checked>
-                                        <span class="ml-1">Translation</span>
+                        <label class="block text-sm font-medium text-zinc-300 mb-1 mt-2">Target Languages</label>
+                        <div id="target-languages-container" class="space-y-4 bg-[#09090B] p-4 rounded-xl border border-[#27272A]">
+
+                            <div class="target-lang-item border-b border-[#27272A] pb-3 last:border-0 last:pb-0">
+                                <span class="text-sm font-semibold text-zinc-100 block mb-2">English (EN)</span>
+                                <div class="flex space-x-5">
+                                    <label class="inline-flex items-center text-xs text-zinc-400 cursor-pointer">
+                                        <input type="checkbox" class="lang-trans-cb form-checkbox h-4 w-4 text-[#F97316] bg-[#09090B] border-[#27272A] rounded" data-lang="en" value="en">
+                                        <span class="ml-2">Translation</span>
                                     </label>
-                                    <label class="inline-flex items-center text-xs text-gray-400">
-                                        <input type="checkbox" class="lang-ex-cb form-checkbox h-3 w-3 text-purple-500 bg-gray-700 border-gray-600 rounded" data-lang="en" checked>
-                                        <span class="ml-1">Examples</span>
+                                    <label class="inline-flex items-center text-xs text-zinc-400 cursor-pointer">
+                                        <input type="checkbox" class="lang-ex-cb form-checkbox h-4 w-4 text-[#F97316] bg-[#09090B] border-[#27272A] rounded" data-lang="en" value="en">
+                                        <span class="ml-2">Examples</span>
                                     </label>
                                 </div>
                             </div>
 
-                            <div class="target-lang-item border-b border-gray-700 pb-2">
-                                <label class="inline-flex items-center text-sm font-medium text-gray-200">
-                                    <input type="checkbox" class="lang-enable-cb form-checkbox h-4 w-4 text-blue-600 bg-gray-700 border-gray-600 rounded" value="es">
-                                    <span class="ml-2">Spanish (ES)</span>
-                                </label>
-                                <div class="ml-6 mt-1 flex space-x-4 opacity-50 pointer-events-none lang-options-div">
-                                    <label class="inline-flex items-center text-xs text-gray-400">
-                                        <input type="checkbox" class="lang-trans-cb form-checkbox h-3 w-3 text-green-500 bg-gray-700 border-gray-600 rounded" data-lang="es" checked>
-                                        <span class="ml-1">Translation</span>
+                            <div class="target-lang-item border-b border-[#27272A] pb-3 last:border-0 last:pb-0">
+                                <span class="text-sm font-semibold text-zinc-100 block mb-2">Spanish (ES)</span>
+                                <div class="flex space-x-5">
+                                    <label class="inline-flex items-center text-xs text-zinc-400 cursor-pointer">
+                                        <input type="checkbox" class="lang-trans-cb form-checkbox h-4 w-4 text-[#F97316] bg-[#09090B] border-[#27272A] rounded" data-lang="es" value="es">
+                                        <span class="ml-2">Translation</span>
                                     </label>
-                                    <label class="inline-flex items-center text-xs text-gray-400">
-                                        <input type="checkbox" class="lang-ex-cb form-checkbox h-3 w-3 text-purple-500 bg-gray-700 border-gray-600 rounded" data-lang="es">
-                                        <span class="ml-1">Examples</span>
+                                    <label class="inline-flex items-center text-xs text-zinc-400 cursor-pointer">
+                                        <input type="checkbox" class="lang-ex-cb form-checkbox h-4 w-4 text-[#F97316] bg-[#09090B] border-[#27272A] rounded" data-lang="es" value="es">
+                                        <span class="ml-2">Examples</span>
                                     </label>
                                 </div>
                             </div>
 
-                            <div class="target-lang-item border-b border-gray-700 pb-2">
-                                <label class="inline-flex items-center text-sm font-medium text-gray-200">
-                                    <input type="checkbox" class="lang-enable-cb form-checkbox h-4 w-4 text-blue-600 bg-gray-700 border-gray-600 rounded" value="de">
-                                    <span class="ml-2">German (DE)</span>
-                                </label>
-                                <div class="ml-6 mt-1 flex space-x-4 opacity-50 pointer-events-none lang-options-div">
-                                    <label class="inline-flex items-center text-xs text-gray-400">
-                                        <input type="checkbox" class="lang-trans-cb form-checkbox h-3 w-3 text-green-500 bg-gray-700 border-gray-600 rounded" data-lang="de" checked>
-                                        <span class="ml-1">Translation</span>
+                            <div class="target-lang-item border-b border-[#27272A] pb-3 last:border-0 last:pb-0">
+                                <span class="text-sm font-semibold text-zinc-100 block mb-2">German (DE)</span>
+                                <div class="flex space-x-5">
+                                    <label class="inline-flex items-center text-xs text-zinc-400 cursor-pointer">
+                                        <input type="checkbox" class="lang-trans-cb form-checkbox h-4 w-4 text-[#F97316] bg-[#09090B] border-[#27272A] rounded" data-lang="de" value="de">
+                                        <span class="ml-2">Translation</span>
                                     </label>
-                                    <label class="inline-flex items-center text-xs text-gray-400">
-                                        <input type="checkbox" class="lang-ex-cb form-checkbox h-3 w-3 text-purple-500 bg-gray-700 border-gray-600 rounded" data-lang="de">
-                                        <span class="ml-1">Examples</span>
+                                    <label class="inline-flex items-center text-xs text-zinc-400 cursor-pointer">
+                                        <input type="checkbox" class="lang-ex-cb form-checkbox h-4 w-4 text-[#F97316] bg-[#09090B] border-[#27272A] rounded" data-lang="de" value="de">
+                                        <span class="ml-2">Examples</span>
                                     </label>
                                 </div>
                             </div>
 
-                            <div class="target-lang-item border-b border-gray-700 pb-2">
-                                <label class="inline-flex items-center text-sm font-medium text-gray-200">
-                                    <input type="checkbox" class="lang-enable-cb form-checkbox h-4 w-4 text-blue-600 bg-gray-700 border-gray-600 rounded" value="fr">
-                                    <span class="ml-2">French (FR)</span>
-                                </label>
-                                <div class="ml-6 mt-1 flex space-x-4 opacity-50 pointer-events-none lang-options-div">
-                                    <label class="inline-flex items-center text-xs text-gray-400">
-                                        <input type="checkbox" class="lang-trans-cb form-checkbox h-3 w-3 text-green-500 bg-gray-700 border-gray-600 rounded" data-lang="fr" checked>
-                                        <span class="ml-1">Translation</span>
+                            <div class="target-lang-item border-b border-[#27272A] pb-3 last:border-0 last:pb-0">
+                                <span class="text-sm font-semibold text-zinc-100 block mb-2">French (FR)</span>
+                                <div class="flex space-x-5">
+                                    <label class="inline-flex items-center text-xs text-zinc-400 cursor-pointer">
+                                        <input type="checkbox" class="lang-trans-cb form-checkbox h-4 w-4 text-[#F97316] bg-[#09090B] border-[#27272A] rounded" data-lang="fr" value="fr">
+                                        <span class="ml-2">Translation</span>
                                     </label>
-                                    <label class="inline-flex items-center text-xs text-gray-400">
-                                        <input type="checkbox" class="lang-ex-cb form-checkbox h-3 w-3 text-purple-500 bg-gray-700 border-gray-600 rounded" data-lang="fr">
-                                        <span class="ml-1">Examples</span>
+                                    <label class="inline-flex items-center text-xs text-zinc-400 cursor-pointer">
+                                        <input type="checkbox" class="lang-ex-cb form-checkbox h-4 w-4 text-[#F97316] bg-[#09090B] border-[#27272A] rounded" data-lang="fr" value="fr">
+                                        <span class="ml-2">Examples</span>
                                     </label>
                                 </div>
                             </div>
 
                         </div>
-
                     </div>
+                </div>
                 </div>
             </div>
         </div>
 
         <!-- Right Column: Staging Area -->
-        <div class="lg:col-span-2">
-            <div class="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700 min-h-[500px] h-full flex flex-col">
-                <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
-                    <h2 class="text-xl font-semibold text-gray-200">Staging Area</h2>
+        <div class="lg:col-span-8">
+            <div class="bg-[#18181B] p-6 rounded-2xl shadow-md border border-[#27272A] min-h-[500px] h-full flex flex-col">
+                <div class="flex justify-between items-center mb-4 border-b border-[#27272A] pb-2">
+                    <h2 class="text-xl font-semibold text-zinc-100">Staging Area</h2>
                     <span id="word-count" class="text-sm bg-blue-900 text-blue-200 py-1 px-3 rounded-full font-medium border border-blue-800">0 words</span>
                 </div>
 
@@ -206,7 +196,7 @@
                         <svg class="mx-auto h-12 w-12 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                         </svg>
-                        <p class="mt-4 text-sm font-medium text-gray-400">No words staged yet.</p>
+                        <p class="mt-4 text-sm font-medium text-zinc-400">No words staged yet.</p>
                         <p class="mt-1 text-xs text-gray-500">Generate a word or load a JSON project to get started.</p>
                     </div>
                 </div>
@@ -216,8 +206,8 @@
 
     <!-- Edit Modal (Hidden by default) -->
     <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-70 hidden z-50 flex items-center justify-center backdrop-blur-sm">
-        <div class="bg-gray-800 rounded-lg p-6 w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto no-scrollbar border border-gray-700">
-            <h3 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2 text-gray-200">Edit Word Data</h3>
+        <div class="bg-[#18181B] rounded-2xl p-6 w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto no-scrollbar border border-[#27272A]">
+            <h3 class="text-xl font-bold mb-4 border-b border-[#27272A] pb-2 text-zinc-100">Edit Word Data</h3>
 
             <input type="hidden" id="edit-id">
 
@@ -225,9 +215,9 @@
                         <div id="dynamic-edit-fields" class="grid grid-cols-2 gap-4 mb-4">
                             <!-- Dynamic fields will be injected here -->
                         </div>
-<div class="flex justify-end space-x-3 border-t border-gray-700 pt-4">
-                <button id="cancel-edit-btn" class="px-4 py-2 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 border border-gray-600">Cancel</button>
-                <button id="save-edit-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium">Save Changes</button>
+<div class="flex justify-end space-x-3 border-t border-[#27272A] pt-4">
+                <button id="cancel-edit-btn" class="px-4 py-2 bg-[#09090B] text-zinc-300 rounded-xl hover:bg-[#27272A] border border-[#27272A]">Cancel</button>
+                <button id="save-edit-btn" class="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium">Save Changes</button>
             </div>
         </div>
     </div>
@@ -235,5 +225,18 @@
     <!-- Application Scripts -->
     <script src="app.js"></script>
     <script src="anki-export.js"></script>
+
+    <!-- Prompt Modal (Hidden by default) -->
+    <div id="prompt-modal" class="fixed inset-0 bg-black bg-opacity-80 hidden z-50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-[#18181B] rounded-2xl p-6 w-full max-w-lg shadow-2xl border border-[#27272A]">
+            <h3 class="text-xl font-bold mb-4 text-white">System Prompt</h3>
+            <p class="text-xs text-zinc-400 mb-4">Edit the instructions sent to the AI. Use <span class="text-[#F97316] font-mono">[MAIN_LANGUAGE]</span> as a placeholder for the selected main language.</p>
+            <textarea id="system-prompt" rows="6" class="w-full px-3 py-2 bg-[#09090B] border border-[#27272A] text-zinc-200 rounded-xl focus:outline-none focus:border-[#F97316] text-sm font-mono leading-relaxed resize-none">You are an expert [MAIN_LANGUAGE] language tutor generating flashcards for an advanced student. The user will provide a word. Return ONLY a raw JSON object matching the schema. Provide translations and contextual examples at B1/B2 level. Identify the part of speech and gender if it is a noun. If the word is invalid, return a JSON object with ONLY an "error" key. No markdown formatting.</textarea>
+            <div class="flex justify-end space-x-3 mt-5 pt-4 border-t border-[#27272A]">
+                <button id="close-prompt-btn" class="px-5 py-2 bg-[#F97316] text-white rounded-xl font-bold hover:bg-[#EA580C] transition-colors">Done</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

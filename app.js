@@ -30,7 +30,10 @@ const elements = {
     cancelEditBtn: document.getElementById('cancel-edit-btn'),
     mainLanguage: document.getElementById('main-language'),
     targetLanguagesContainer: document.getElementById('target-languages-container'),
-    dynamicEditFields: document.getElementById('dynamic-edit-fields')
+    dynamicEditFields: document.getElementById('dynamic-edit-fields'),
+    promptSettingsBtn: document.getElementById('prompt-settings-btn'),
+    promptModal: document.getElementById('prompt-modal'),
+    closePromptBtn: document.getElementById('close-prompt-btn')
 };
 
 // Initialize App
@@ -52,7 +55,38 @@ function init() {
         }
     }
 
-    setupLanguageCheckboxes();
+    const savedLangSettings = localStorage.getItem('anki_lang_settings');
+    if (savedLangSettings) {
+        try {
+            const parsed = JSON.parse(savedLangSettings);
+            if (parsed.mainLang && elements.mainLanguage) {
+                elements.mainLanguage.value = parsed.mainLang;
+            }
+            if (parsed.targets && elements.targetLanguagesContainer) {
+                const items = elements.targetLanguagesContainer.querySelectorAll('.target-lang-item');
+                items.forEach(item => {
+                    const transCb = item.querySelector('.lang-trans-cb');
+                    const exCb = item.querySelector('.lang-ex-cb');
+                    if (transCb || exCb) {
+                        const lang = (transCb || exCb).value;
+                        const target = parsed.targets.find(t => t.lang === lang);
+                        if (target) {
+                            if (transCb) transCb.checked = target.translation;
+                            if (exCb) exCb.checked = target.examples;
+                        } else {
+                            if (transCb) transCb.checked = false;
+                            if (exCb) exCb.checked = false;
+                        }
+                    }
+                });
+            }
+        } catch (e) {
+            console.error("Failed to parse saved lang settings", e);
+        }
+    } else {
+        setupLanguageCheckboxes();
+    }
+
 
     // Event Listeners
     elements.saveApiKeyBtn.addEventListener('click', saveApiKey);
@@ -61,6 +95,15 @@ function init() {
     elements.importJsonInput.addEventListener('change', importJson);
     elements.cancelEditBtn.addEventListener('click', closeEditModal);
     elements.saveEditBtn.addEventListener('click', saveEditedWord);
+
+    if (elements.promptSettingsBtn) {
+        elements.promptSettingsBtn.addEventListener('click', () => {
+            elements.promptModal.classList.remove('hidden');
+        });
+        elements.closePromptBtn.addEventListener('click', () => {
+            elements.promptModal.classList.add('hidden');
+        });
+    }
 
     // Save model choice on change
     elements.modelSelect.addEventListener('change', (e) => {
@@ -162,7 +205,14 @@ async function handleGenerate() {
     showStatus('Calling Gemini API...', 'info');
 
     try {
-        const customPrompt = elements.systemPrompt.value;
+        const { mainLangName } = getSelectedLanguages();
+
+        let customPromptText = '';
+        if (elements.systemPrompt) {
+            customPromptText = elements.systemPrompt.value;
+        }
+
+        const customPrompt = customPromptText.replace(/\[MAIN_LANGUAGE\]/g, mainLangName);
         const selectedModel = elements.modelSelect.value || 'gemini-1.5-flash';
         const data = await callGeminiAPI(word, apiKey, customPrompt, selectedModel);
 
@@ -265,7 +315,7 @@ function updateUI() {
 
         stagedWords.forEach((wordObj, index) => {
             const card = document.createElement('div');
-            card.className = 'bg-gray-700 p-4 rounded-lg border border-gray-600 relative group';
+            card.className = 'bg-[#09090B] p-4 rounded-lg border border-gray-600 relative group';
 
             const safeId = escapeHTML(wordObj.id);
 
@@ -273,25 +323,25 @@ function updateUI() {
                     <div class="flex-1">
                         <div class="flex items-center space-x-3">
                             <h3 class="text-xl font-bold text-blue-400">${escapeHTML(wordObj[Object.keys(wordObj).find(k => k.startsWith('word_'))])}</h3>
-                            <span class="px-2 py-0.5 rounded text-xs font-semibold bg-gray-600 text-gray-200">${escapeHTML(wordObj.part_of_speech)}</span>
+                            <span class="px-2 py-0.5 rounded text-xs font-semibold bg-[#27272A] text-zinc-100">${escapeHTML(wordObj.part_of_speech)}</span>
                         </div>
-                        <p class="text-sm text-gray-400 mt-1">Root: <span class="text-gray-300 font-medium">${escapeHTML(wordObj[Object.keys(wordObj).find(k => k.startsWith('root_'))] || '')}</span></p>
+                        <p class="text-sm text-zinc-400 mt-1">Root: <span class="text-gray-300 font-medium">${escapeHTML(wordObj[Object.keys(wordObj).find(k => k.startsWith('root_'))] || '')}</span></p>
                     </div>
 
                     <div class="flex space-x-2 mt-2 sm:mt-0 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onclick="openEditModal('${safeId}')" class="text-blue-400 hover:text-blue-300 p-1 bg-gray-800 rounded">
+                        <button onclick="openEditModal('${safeId}')" class="text-blue-400 hover:text-blue-300 p-1 bg-[#18181B] rounded">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                         </button>
-                        <button onclick="deleteWord('${safeId}')" class="text-red-400 hover:text-red-300 p-1 bg-gray-800 rounded">
+                        <button onclick="deleteWord('${safeId}')" class="text-red-400 hover:text-red-300 p-1 bg-[#18181B] rounded">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     </div>
                 </div>
 
-                <div class="mb-3 bg-gray-800 p-3 rounded-md border border-gray-600">
+                <div class="mb-3 bg-[#18181B] p-3 rounded-md border border-gray-600">
                     ${Object.keys(wordObj).filter(k => k.startsWith('translation_')).map(k => {
                         const lang = k.split('_')[1].toUpperCase();
-                        return `<p class="text-md font-medium text-gray-200">${lang}: ${escapeHTML(wordObj[k])}</p>`;
+                        return `<p class="text-md font-medium text-zinc-100">${lang}: ${escapeHTML(wordObj[k])}</p>`;
                     }).join('')}
                 </div>
 
@@ -303,13 +353,13 @@ function updateUI() {
                         [1, 2].forEach(num => {
                             if (wordObj[`example_${num}_${mainLang}`]) {
                                 exHtml += `<div>
-                                    <p class="font-medium text-gray-200"><span class="font-bold text-gray-400 mr-1">${num}.</span>${escapeHTML(wordObj[`example_${num}_${mainLang}`])}</p>`;
+                                    <p class="font-medium text-zinc-100"><span class="font-bold text-zinc-400 mr-1">${num}.</span>${escapeHTML(wordObj[`example_${num}_${mainLang}`])}</p>`;
 
                                 // Find target language examples
                                 Object.keys(wordObj).forEach(k => {
                                     if (k.startsWith(`example_${num}_`) && !k.endsWith(`_${mainLang}`)) {
                                         const lang = k.split('_')[2].toUpperCase();
-                                        exHtml += `<p class="text-gray-400 italic text-xs mt-0.5">${lang}: ${escapeHTML(wordObj[k])}</p>`;
+                                        exHtml += `<p class="text-zinc-400 italic text-xs mt-0.5">${lang}: ${escapeHTML(wordObj[k])}</p>`;
                                     }
                                 });
                                 exHtml += `</div>`;
@@ -360,7 +410,7 @@ window.openEditModal = function(id) {
         elements.dynamicEditFields.innerHTML += `
             <div>
                 <label class="block text-sm font-medium text-gray-300">${f.label}</label>
-                <input type="text" id="edit-${f.key}" data-key="${f.key}" value="${(wordObj[f.key] || '').replace(/"/g, '&quot;')}" class="dynamic-edit-input mt-1 w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500">
+                <input type="text" id="edit-${f.key}" data-key="${f.key}" value="${(wordObj[f.key] || '').replace(/"/g, '&quot;')}" class="dynamic-edit-input mt-1 w-full px-3 py-2 border border-gray-600 bg-[#09090B] text-gray-100 rounded-md focus:outline-none focus:border-blue-500">
             </div>
         `;
     });
@@ -370,14 +420,14 @@ window.openEditModal = function(id) {
     [1, 2].forEach(num => {
         const exampleKeys = Object.keys(wordObj).filter(k => k.startsWith(`example_${num}_`));
         if (exampleKeys.length > 0) {
-            let exHtml = `<div class="p-3 bg-gray-900 rounded border border-gray-700 space-y-2">
-                <label class="block text-sm font-bold text-gray-300 border-b border-gray-700 pb-1">Example ${num}</label>`;
+            let exHtml = `<div class="p-3 bg-gray-900 rounded border border-[#27272A] space-y-2">
+                <label class="block text-sm font-bold text-gray-300 border-b border-[#27272A] pb-1">Example ${num}</label>`;
             exampleKeys.forEach(k => {
                 const lang = k.split('_')[2].toUpperCase();
                 exHtml += `
                     <div class="flex items-center space-x-2">
                         <span class="text-xs font-bold text-gray-500 w-8">${lang}</span>
-                        <input type="text" id="edit-${k}" data-key="${k}" value="${(wordObj[k] || '').replace(/"/g, '&quot;')}" class="dynamic-edit-input flex-1 px-3 py-1.5 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:border-blue-500 text-sm">
+                        <input type="text" id="edit-${k}" data-key="${k}" value="${(wordObj[k] || '').replace(/"/g, '&quot;')}" class="dynamic-edit-input flex-1 px-3 py-1.5 border border-gray-600 bg-[#09090B] text-gray-100 rounded-md focus:outline-none focus:border-blue-500 text-sm">
                     </div>`;
             });
             exHtml += `</div>`;
@@ -449,6 +499,7 @@ function importJson(event) {
                     elements.deckNameInput.value = data.deckName;
                 }
                 updateUI();
+                saveState();
                 showStatus('Project loaded successfully!', 'success');
             } else {
                 throw new Error("Invalid format");
@@ -497,21 +548,24 @@ function setupLanguageCheckboxes() {
 
 function getSelectedLanguages() {
     const mainLang = elements.mainLanguage ? elements.mainLanguage.value : 'pl';
+    const mainLangName = elements.mainLanguage ? elements.mainLanguage.options[elements.mainLanguage.selectedIndex].text : 'Polish';
     const targets = [];
 
     if (elements.targetLanguagesContainer) {
         const items = elements.targetLanguagesContainer.querySelectorAll('.target-lang-item');
         items.forEach(item => {
-            const enableCb = item.querySelector('.lang-enable-cb');
-            if (enableCb && enableCb.checked) {
-                const lang = enableCb.value;
-                const transCb = item.querySelector('.lang-trans-cb');
-                const exCb = item.querySelector('.lang-ex-cb');
+            const transCb = item.querySelector('.lang-trans-cb');
+            const exCb = item.querySelector('.lang-ex-cb');
 
+            const isTransChecked = transCb ? transCb.checked : false;
+            const isExChecked = exCb ? exCb.checked : false;
+
+            if (isTransChecked || isExChecked) {
+                const lang = (transCb || exCb).value;
                 targets.push({
                     lang: lang,
-                    translation: transCb ? transCb.checked : true,
-                    examples: exCb ? exCb.checked : false
+                    translation: isTransChecked,
+                    examples: isExChecked
                 });
             }
         });
@@ -521,11 +575,11 @@ function getSelectedLanguages() {
         targets.push({ lang: 'es', translation: true, examples: false });
     }
 
-    return { mainLang, targets };
+    return { mainLang, mainLangName, targets };
 }
 
 function generateDynamicSchema() {
-    const { mainLang, targets } = getSelectedLanguages();
+    const { mainLang, mainLangName, targets } = getSelectedLanguages();
 
     const schema = {
         [`word_${mainLang}`]: "string",
@@ -552,4 +606,6 @@ function generateDynamicSchema() {
 
 function saveState() {
     localStorage.setItem('anki_staged_words', JSON.stringify(stagedWords));
+    const langSettings = getSelectedLanguages();
+    localStorage.setItem('anki_lang_settings', JSON.stringify(langSettings));
 }
