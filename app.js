@@ -204,7 +204,7 @@ async function handleGenerate() {
     }
 
     // Parse input string by comma, newline, or multiple spaces
-    const wordsRaw = inputText.split(/[\n,]+|\s{2,}/);
+    const wordsRaw = inputText.split(/[\n,\s]+/);
     const words = wordsRaw.map(w => w.trim()).filter(w => w.length > 0);
 
     if (words.length === 0) {
