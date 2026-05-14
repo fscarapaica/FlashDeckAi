@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body { background-color: #000; display: flex; justify-content: center; padding: 50px; }
+.card { width: 600px; font-family: Arial, sans-serif; font-size: 20px; text-align: center; color: #e0e0e0; background-color: #202020; padding: 20px; border-radius: 10px;}
+.word { font-size: 36px; font-weight: bold; color: #3b82f6; margin-bottom: 5px; }
+.sub-word { font-size: 20px; font-weight: bold; color: #e0e0e0; margin-bottom: 2px; }
+.pos { font-size: 18px; font-weight: bold; color: #888; margin-bottom: 10px; }
+.root { font-size: 18px; color: #aaa; margin-bottom: 15px; }
+.translation { font-size: 22px; font-weight: bold; color: #e0e0e0; margin-bottom: 5px; }
+.example-block { margin-top: 15px; margin-bottom: 15px; }
+.example { font-size: 20px; font-weight: normal; margin-bottom: 3px; color: #e0e0e0; }
+.example-trans { font-size: 18px; color: #aaa; font-style: italic; }
+hr { border: 0; border-bottom: 1px solid #444; margin: 25px 0; }
+.play-btn { background: #333; color: #fff; border: 1px solid #555; padding: 4px 12px; border-radius: 12px; cursor: pointer; font-size: 14px; margin-top: 5px; margin-bottom: 5px; display: inline-flex; align-items: center; justify-content: center; }
+.play-btn:hover { background: #444; }
+.word-block { margin-bottom: 30px; }
+.translation-block { margin-bottom: 15px; }
+</style>
+</head>
+<body>
+<div class="card" id="card">
+</div>
+<script>
+    fetch('backHtml.html').then(r => r.text()).then(html => {
+        document.getElementById('card').innerHTML = html;
+    });
+</script>
+</body>
+</html>

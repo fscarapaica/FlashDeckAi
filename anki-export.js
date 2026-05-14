@@ -75,27 +75,28 @@ function playAudio(text) {
 }
 </script>`;
 
-    const MODEL_ID = 1690000003; // Bumping model ID since fields changed
+    const MODEL_ID = 1690000004; // Bumping model ID since fields changed
 
     const model = new GenankiModel({
-        name: `Dynamic Vocabulary Model ${mainLang.toUpperCase()} v2`,
+        name: `Dynamic Vocabulary Model ${mainLang.toUpperCase()} v3`,
         id: MODEL_ID.toString(),
         flds: flds,
         req: [[0, 'all', [0]]],
         tmpls: [{ name: 'Card 1', qfmt: qfmt, afmt: afmt }],
         css: `.card { font-family: Arial, sans-serif; font-size: 20px; text-align: center; color: #e0e0e0; background-color: #202020; padding: 20px; }
-.word { font-size: 32px; font-weight: bold; color: #4b8ffd; margin-bottom: 5px; }
-.sub-word { font-size: 24px; font-weight: bold; color: #e0e0e0; margin-bottom: 2px; }
-.pos-gender { font-size: 14px; font-weight: bold; color: #888; margin-bottom: 10px; }
-.root { font-size: 16px; color: #aaa; margin-bottom: 15px; }
-.translation { font-size: 18px; font-weight: bold; color: #e0e0e0; margin-bottom: 5px; }
+.word { font-size: 36px; font-weight: bold; color: #3b82f6; margin-bottom: 5px; }
+.sub-word { font-size: 20px; font-weight: bold; color: #e0e0e0; margin-bottom: 2px; }
+.pos { font-size: 18px; font-weight: bold; color: #888; margin-bottom: 10px; }
+.root { font-size: 18px; color: #aaa; margin-bottom: 15px; }
+.translation { font-size: 22px; font-weight: bold; color: #e0e0e0; margin-bottom: 5px; }
 .example-block { margin-top: 15px; margin-bottom: 15px; }
-.example { font-size: 18px; font-weight: 500; margin-bottom: 3px; }
-.example-trans { font-size: 16px; color: #999; font-style: italic; }
+.example { font-size: 20px; font-weight: normal; margin-bottom: 3px; color: #e0e0e0; }
+.example-trans { font-size: 18px; color: #aaa; font-style: italic; }
 hr { border: 0; border-bottom: 1px solid #444; margin: 25px 0; }
-.play-btn { background: #333; color: #fff; border: 1px solid #555; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 5px; margin-bottom: 5px; display: inline-flex; align-items: center; justify-content: center; }
+.play-btn { background: #333; color: #fff; border: 1px solid #555; padding: 4px 12px; border-radius: 12px; cursor: pointer; font-size: 14px; margin-top: 5px; margin-bottom: 5px; display: inline-flex; align-items: center; justify-content: center; }
 .play-btn:hover { background: #444; }
-.word-block { margin-bottom: 30px; }`
+.word-block { margin-bottom: 30px; }
+.translation-block { margin-bottom: 15px; }`
     });
 
     const DECK_ID = hashString(deckName);
@@ -113,54 +114,55 @@ hr { border: 0; border-bottom: 1px solid #444; margin: 25px 0; }
         // BACK: Build HTML chunks per word
         let backHtml = `<div class="word">${frontText}</div>`;
 
-        const root = groupObj[mainRootKey] || '';
+        // Extract shared info from first word (Assuming group shares root and POS)
+        const root = groupObj[mainRootKey] || groupObj._words[0][mainRootKey] || '';
+
         if (root) {
             backHtml += `<div class="root">Root: ${root}</div>`;
         }
 
-        // Determine if we need to show multiple words, to separate them with HRs
-        const isMultiWord = groupObj._words.length > 1;
+        // Iterate through each specific word form in the group
+        // Add an HR immediately after the root section if there are words to show
+        if (groupObj._words.length > 0) {
+            backHtml += `<hr>`;
+        }
 
-        groupObj._words.forEach((w, index) => {
-            if (isMultiWord) {
-                backHtml += `<hr>`;
-            } else {
-                backHtml += `<div style="height: 15px;"></div>`;
-            }
+        for (let i = 0; i < groupObj._words.length; i++) {
+             const w = groupObj._words[i];
+             const pos = w.part_of_speech || groupObj._words[0].part_of_speech || '';
 
-            backHtml += `<div class="word-block">`;
-            backHtml += `<div class="sub-word">${w[mainWordKey]}</div>`;
+             backHtml += `<div class="word-block">`;
 
-            if (w.part_of_speech) {
-                backHtml += `<div class="pos-gender">${w.part_of_speech}</div>`;
-            }
+             backHtml += `<div class="sub-word">word: ${w[mainWordKey]}</div>`;
 
-            // Translations
-            targets.forEach(t => {
-                if (t.translation) {
-                    const trans = w[`translation_${t.lang}`];
-                    if (trans) {
-                        backHtml += `<div class="translation">${t.lang.toUpperCase()}: ${trans}</div>`;
-                    }
-                }
-            });
+             if (pos) {
+                 backHtml += `<div class="pos">part_of_speech: ${pos}</div>`;
+             }
 
-            // Examples
-            // We look for any keys starting with example_ and group them by number
-            const exampleNums = [1, 2]; // Typically 1 and 2
+             // Translations for this specific word
+             targets.forEach(t => {
+                 if (t.translation) {
+                     const trans = w[`translation_${t.lang}`];
+                     if (trans) {
+                         backHtml += `<div class="translation">${t.lang.toUpperCase()}: ${trans}</div>`;
+                     }
+                 }
+             });
 
-            exampleNums.forEach(num => {
-                const mainEx = w[`example_${num}_${mainLang}`];
-                if (mainEx) {
+             // Examples for this specific word
+             const maxExamples = 2;
+             for (let num = 1; num <= maxExamples; num++) {
+                 const mainEx = w[`example_${num}_${mainLang}`];
+                 if (mainEx) {
                     backHtml += `<div class="example-block">`;
-                    // The main language example + audio button
-                    // Note: We safely escape quotes for the onclick handler
+                    backHtml += `<div class="example">Example ${num}: ${mainEx}</div>`;
+
+                    // Audio Button for example
                     const safeMainEx = mainEx.replace(/'/g, "\\'");
-                    backHtml += `<div class="example">${mainEx}</div>`;
                     backHtml += `<button class="play-btn" onclick="playAudio('${safeMainEx}')">▶ Play Audio</button>`;
 
-                    // The target language translations of this example
-                    targets.forEach(t => {
+                    // Example Translations
+                     targets.forEach(t => {
                         if (t.examples) {
                             const tgtEx = w[`example_${num}_${t.lang}`];
                             if (tgtEx) {
@@ -169,12 +171,17 @@ hr { border: 0; border-bottom: 1px solid #444; margin: 25px 0; }
                         }
                     });
 
-                    backHtml += `</div>`;
-                }
-            });
+                    backHtml += `</div>`; // example-block
+                 }
+             }
 
-            backHtml += `</div>`; // Close word-block
-        });
+             backHtml += `</div>`; // word-block
+
+             // Add horizontal line between word blocks
+             if (i < groupObj._words.length - 1) {
+                 backHtml += `<hr>`;
+             }
+        }
 
         const note = new GenankiNote(
             model,
