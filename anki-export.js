@@ -205,12 +205,13 @@ hr { border: 0; border-bottom: 1px solid #444; margin: 20px 0; }
             }
         });
 
-        const note = new GenankiNote({
-            model: model,
-            fields: fieldValues,
-            tags: ['AnkiAIDeckMaker'],
-            guid: groupObj.id
-        });
+        // Correct initialization of Note class using positional arguments for genanki-js
+        const note = new GenankiNote(
+            model,
+            fieldValues,
+            null, // tags (optional)
+            groupObj.id // guid
+        );
         deck.addNote(note);
     });
 
