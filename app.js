@@ -239,13 +239,13 @@ async function handleGenerate() {
             customPromptText = elements.systemPrompt.value;
         }
 
-        const customPrompt = customPromptText.replace(/\\[MAIN_LANGUAGE\\]/g, mainLangName);
+        const customPrompt = customPromptText.replace(/\[MAIN_LANGUAGE\]/g, mainLangName);
         const selectedModel = elements.modelSelect.value || 'gemini-1.5-flash';
 
         // Process concurrently
         const promises = words.map(async (word) => {
             try {
-                const data = await callGeminiAPI(word, apiKey, customPrompt, selectedModel);
+                const data = await callGeminiAPI(word, apiKey, customPrompt, selectedModel, mainLangName);
                 processedCount++;
 
                 // Update Progress UI
@@ -363,7 +363,7 @@ function processAndMergeWord(data) {
 }
 
 // Call Gemini API
-async function callGeminiAPI(word, apiKey, customInstruction, model) {
+async function callGeminiAPI(word, apiKey, customInstruction, model, mainLangName) {
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     const schemaObj = generateDynamicSchema();
@@ -371,9 +371,11 @@ async function callGeminiAPI(word, apiKey, customInstruction, model) {
 
     const fullSystemInstruction = `${customInstruction}\n\n${jsonSchemaTemplate}`;
 
+    const userPrompt = `Target word to analyze in ${mainLangName || 'the specified main language'}: "${word}"`;
+
     const payload = {
         contents: [{
-            parts: [{ text: word }]
+            parts: [{ text: userPrompt }]
         }],
         systemInstruction: {
             parts: [{ text: fullSystemInstruction }]
@@ -412,6 +414,14 @@ async function callGeminiAPI(word, apiKey, customInstruction, model) {
 // Update the UI (Staging area list and counts)
 function updateUI() {
     // Count total individual words, not just groups
+    // Handle legacy non-grouped words in migration
+    stagedWords.forEach(w => {
+        if (!w._isGroup) {
+            w._isGroup = true;
+            w._words = [{...w}];
+        }
+    });
+
     const totalWords = stagedWords.reduce((acc, curr) => acc + (curr._isGroup ? curr._words.length : 1), 0);
     elements.wordCount.textContent = `${totalWords} words`;
 
