@@ -49,7 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function exportToAnki(wordsArray, deckName) {
-    // Safely resolve Anki classes whether they are globally available or in a 'genanki' namespace
     const GenankiModel = typeof Model !== 'undefined' ? Model : (window.genanki ? window.genanki.Model : window.Model);
     const GenankiDeck = typeof Deck !== 'undefined' ? Deck : (window.genanki ? window.genanki.Deck : window.Deck);
     const GenankiNote = typeof Note !== 'undefined' ? Note : (window.genanki ? window.genanki.Note : window.Note);
@@ -57,104 +56,46 @@ function exportToAnki(wordsArray, deckName) {
 
     const { mainLang, targets } = window.getSelectedLanguages();
 
-    // Dynamically build fields
+    // Simplify the Model to just Front and Back
     const flds = [
-        { name: 'Word' },
-        { name: 'Root' },
-        { name: 'PartOfSpeech' }
+        { name: 'Front' },
+        { name: 'Back' }
     ];
 
-    targets.forEach(t => {
-        if (t.translation) {
-            flds.push({ name: `Translation_${t.lang.toUpperCase()}` });
-        }
-        if (t.examples) {
-            flds.push({ name: `Example1_${mainLang.toUpperCase()}` });
-            flds.push({ name: `Example1_${t.lang.toUpperCase()}` });
-            flds.push({ name: `Example2_${mainLang.toUpperCase()}` });
-            flds.push({ name: `Example2_${t.lang.toUpperCase()}` });
-        }
-    });
+    const qfmt = `<div class="word">{{Front}}</div>
+{{tts ${mainLang}_${mainLang.toUpperCase()}:Front}}`;
 
-    // Remove duplicate example keys from flds (since multiple target languages might add the same main language example)
-    const uniqueFlds = [];
-    const seenNames = new Set();
-    flds.forEach(f => {
-        if (!seenNames.has(f.name)) {
-            seenNames.add(f.name);
-            uniqueFlds.push(f);
-        }
-    });
-
-    // Build qfmt and afmt
-    const qfmt = `<div class="word">{{Word}}</div>
-{{tts ${mainLang}_${mainLang.toUpperCase()}:Word}}`;
-
-    let afmt = `<div class="word">{{Word}}</div>
-<div class="pos-gender">{{PartOfSpeech}}</div>
-<div class="root">Root: {{Root}}</div>`;
-
-    targets.forEach(t => {
-        if (t.translation) {
-            afmt += `
-<div class="translation-${t.lang}">${t.lang.toUpperCase()}: {{Translation_${t.lang.toUpperCase()}}}</div>`;
-        }
-    });
-
-    // We will use JS for the back side audio to avoid autoplay
-    let hasExamples = false;
-    [1, 2].forEach(num => {
-        const exMainKey = `Example${num}_${mainLang.toUpperCase()}`;
-        if (uniqueFlds.find(f => f.name === exMainKey)) {
-            hasExamples = true;
-            afmt += `
-<hr>
-<div class="example" id="ex${num}">{{${exMainKey}}}</div>`;
-            afmt += `
-<button class="play-btn" onclick="playAudio('ex${num}')">▶ Play Audio</button>`;
-
-            targets.forEach(t => {
-                if (t.examples) {
-                    const exTgtKey = `Example${num}_${t.lang.toUpperCase()}`;
-                    if (uniqueFlds.find(f => f.name === exTgtKey)) {
-                        afmt += `
-<div class="example-trans">{{${exTgtKey}}}</div>`;
-                    }
-                }
-            });
-        }
-    });
-
-    if (hasExamples) {
-        afmt += `
+    // The back template just renders the generic HTML we build in JS
+    const afmt = `{{Back}}
 <script>
-function playAudio(elementId) {
-    var text = document.getElementById(elementId).innerText;
+function playAudio(text) {
     var msg = new SpeechSynthesisUtterance(text);
     msg.lang = '${mainLang}-${mainLang.toUpperCase()}';
     window.speechSynthesis.speak(msg);
 }
 </script>`;
-    }
 
-    const MODEL_ID = 1690000002;
+    const MODEL_ID = 1690000003; // Bumping model ID since fields changed
 
     const model = new GenankiModel({
-        name: `Dynamic Vocabulary Model ${mainLang.toUpperCase()}`,
+        name: `Dynamic Vocabulary Model ${mainLang.toUpperCase()} v2`,
         id: MODEL_ID.toString(),
-        flds: uniqueFlds,
+        flds: flds,
         req: [[0, 'all', [0]]],
         tmpls: [{ name: 'Card 1', qfmt: qfmt, afmt: afmt }],
         css: `.card { font-family: Arial, sans-serif; font-size: 20px; text-align: center; color: #e0e0e0; background-color: #202020; padding: 20px; }
 .word { font-size: 32px; font-weight: bold; color: #4b8ffd; margin-bottom: 5px; }
-.pos-gender { font-size: 16px; font-weight: bold; color: #aaa; margin-bottom: 10px; }
+.sub-word { font-size: 24px; font-weight: bold; color: #e0e0e0; margin-bottom: 2px; }
+.pos-gender { font-size: 14px; font-weight: bold; color: #888; margin-bottom: 10px; }
 .root { font-size: 16px; color: #aaa; margin-bottom: 15px; }
-[class^="translation-"] { font-size: 20px; font-weight: bold; color: #e0e0e0; margin-bottom: 5px; }
-.example { font-size: 20px; margin-top: 15px; font-weight: 500; }
-.example-trans { font-size: 16px; color: #999; font-style: italic; margin-top: 3px; }
-hr { border: 0; border-bottom: 1px solid #444; margin: 20px 0; }
-.play-btn { background: #333; color: #fff; border: 1px solid #555; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 14px; margin-top: 5px; }
-.play-btn:hover { background: #444; }`
+.translation { font-size: 18px; font-weight: bold; color: #e0e0e0; margin-bottom: 5px; }
+.example-block { margin-top: 15px; margin-bottom: 15px; }
+.example { font-size: 18px; font-weight: 500; margin-bottom: 3px; }
+.example-trans { font-size: 16px; color: #999; font-style: italic; }
+hr { border: 0; border-bottom: 1px solid #444; margin: 25px 0; }
+.play-btn { background: #333; color: #fff; border: 1px solid #555; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 5px; margin-bottom: 5px; display: inline-flex; align-items: center; justify-content: center; }
+.play-btn:hover { background: #444; }
+.word-block { margin-bottom: 30px; }`
     });
 
     const DECK_ID = hashString(deckName);
@@ -166,50 +107,79 @@ hr { border: 0; border-bottom: 1px solid #444; margin: 20px 0; }
         const mainWordKey = `word_${mainLang}`;
         const mainRootKey = `root_${mainLang}`;
 
-        const fieldValues = [];
+        // FRONT: Comma separated list of all words
+        const frontText = groupObj._words.map(w => w[mainWordKey]).join(', ');
 
-        uniqueFlds.forEach(field => {
-            const fName = field.name;
+        // BACK: Build HTML chunks per word
+        let backHtml = `<div class="word">${frontText}</div>`;
 
-            if (fName === 'Word') {
-                fieldValues.push(groupObj._words.map(w => w[mainWordKey]).join(', '));
-            } else if (fName === 'Root') {
-                fieldValues.push(groupObj[mainRootKey] || '');
-            } else if (fName === 'PartOfSpeech') {
-                const posSet = new Set(groupObj._words.map(w => w.part_of_speech).filter(Boolean));
-                fieldValues.push(Array.from(posSet).join(', '));
-            } else if (fName.startsWith('Translation_')) {
-                const lang = fName.split('_')[1].toLowerCase();
-                const transKey = `translation_${lang}`;
-                let aggregatedTrans = groupObj._words.map(w => {
-                    const trans = w[transKey] || '';
-                    if (!trans) return '';
-                    return groupObj._words.length > 1 ? `<b>${w[mainWordKey]}</b>: ${trans}` : trans;
-                }).filter(Boolean).join('<br><br>');
-                fieldValues.push(aggregatedTrans);
-            } else if (fName.startsWith('Example')) {
-                // Example1_EN, Example2_PL, etc.
-                const parts = fName.split('_');
-                const exNum = parts[0].replace('Example', ''); // '1' or '2'
-                const lang = parts[1].toLowerCase(); // 'en' or 'pl'
+        const root = groupObj[mainRootKey] || '';
+        if (root) {
+            backHtml += `<div class="root">Root: ${root}</div>`;
+        }
 
-                const exKey = `example_${exNum}_${lang}`;
-                let aggregatedEx = groupObj._words.map(w => {
-                    const ex = w[exKey] || '';
-                    if (!ex) return '';
-                    return groupObj._words.length > 1 ? `<b>${w[mainWordKey]}</b>: <br>${ex}` : ex;
-                }).filter(Boolean).join('<br><br>');
-                fieldValues.push(aggregatedEx);
+        // Determine if we need to show multiple words, to separate them with HRs
+        const isMultiWord = groupObj._words.length > 1;
+
+        groupObj._words.forEach((w, index) => {
+            if (isMultiWord) {
+                backHtml += `<hr>`;
             } else {
-                fieldValues.push('');
+                backHtml += `<div style="height: 15px;"></div>`;
             }
+
+            backHtml += `<div class="word-block">`;
+            backHtml += `<div class="sub-word">${w[mainWordKey]}</div>`;
+
+            if (w.part_of_speech) {
+                backHtml += `<div class="pos-gender">${w.part_of_speech}</div>`;
+            }
+
+            // Translations
+            targets.forEach(t => {
+                if (t.translation) {
+                    const trans = w[`translation_${t.lang}`];
+                    if (trans) {
+                        backHtml += `<div class="translation">${t.lang.toUpperCase()}: ${trans}</div>`;
+                    }
+                }
+            });
+
+            // Examples
+            // We look for any keys starting with example_ and group them by number
+            const exampleNums = [1, 2]; // Typically 1 and 2
+
+            exampleNums.forEach(num => {
+                const mainEx = w[`example_${num}_${mainLang}`];
+                if (mainEx) {
+                    backHtml += `<div class="example-block">`;
+                    // The main language example + audio button
+                    // Note: We safely escape quotes for the onclick handler
+                    const safeMainEx = mainEx.replace(/'/g, "\\'");
+                    backHtml += `<div class="example">${mainEx}</div>`;
+                    backHtml += `<button class="play-btn" onclick="playAudio('${safeMainEx}')">▶ Play Audio</button>`;
+
+                    // The target language translations of this example
+                    targets.forEach(t => {
+                        if (t.examples) {
+                            const tgtEx = w[`example_${num}_${t.lang}`];
+                            if (tgtEx) {
+                                backHtml += `<div class="example-trans">${tgtEx}</div>`;
+                            }
+                        }
+                    });
+
+                    backHtml += `</div>`;
+                }
+            });
+
+            backHtml += `</div>`; // Close word-block
         });
 
-        // Correct initialization of Note class using positional arguments for genanki-js
         const note = new GenankiNote(
             model,
-            fieldValues,
-            null, // tags (optional)
+            [frontText, backHtml],
+            null, // tags
             groupObj.id // guid
         );
         deck.addNote(note);
