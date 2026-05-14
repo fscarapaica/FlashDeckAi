@@ -11,6 +11,10 @@ const elements = {
     wordInput: document.getElementById('polish-word-input'),
     generateBtn: document.getElementById('generate-btn'),
     statusMessage: document.getElementById('status-message'),
+    batchProgressContainer: document.getElementById('batch-progress-container'),
+    batchProgressText: document.getElementById('batch-progress-text'),
+    batchProgressPercentage: document.getElementById('batch-progress-percentage'),
+    batchProgressBar: document.getElementById('batch-progress-bar'),
     wordsContainer: document.getElementById('words-container'),
     emptyState: document.getElementById('empty-state'),
     wordCount: document.getElementById('word-count'),
@@ -187,22 +191,45 @@ function generateUniqueId() {
 
 // Handle Generate Button Click
 async function handleGenerate() {
-    const word = elements.wordInput.value.trim();
+    const inputText = elements.wordInput.value.trim();
     const apiKey = localStorage.getItem('gemini_api_key');
 
     if (!apiKey) {
         showStatus('Please save your Gemini API Key first.', 'error');
         return;
     }
-    if (!word) {
-        showStatus('Please enter a Polish word.', 'error');
+    if (!inputText) {
+        showStatus('Please enter at least one word.', 'error');
+        return;
+    }
+
+    // Parse input string by comma, newline, or multiple spaces
+    const wordsRaw = inputText.split(/[\n,]+|\s{2,}/);
+    const words = wordsRaw.map(w => w.trim()).filter(w => w.length > 0);
+
+    if (words.length === 0) {
+        showStatus('Please enter at least one valid word.', 'error');
         return;
     }
 
     // Set UI to loading state
     elements.generateBtn.disabled = true;
     elements.generateBtn.textContent = 'Generating...';
-    showStatus('Calling Gemini API...', 'info');
+
+    // Setup Progress Bar
+    let processedCount = 0;
+    let successCount = 0;
+    let failedWords = [];
+
+    if (words.length > 1) {
+        elements.batchProgressContainer.classList.remove('hidden');
+        elements.batchProgressText.textContent = `Processing 0 of ${words.length}...`;
+        elements.batchProgressBar.style.width = '0%';
+        elements.batchProgressPercentage.textContent = '0%';
+        showStatus(`Starting batch generation for ${words.length} words...`, 'info');
+    } else {
+        showStatus('Calling Gemini API...', 'info');
+    }
 
     try {
         const { mainLangName } = getSelectedLanguages();
@@ -212,25 +239,71 @@ async function handleGenerate() {
             customPromptText = elements.systemPrompt.value;
         }
 
-        const customPrompt = customPromptText.replace(/\[MAIN_LANGUAGE\]/g, mainLangName);
+        const customPrompt = customPromptText.replace(/\\[MAIN_LANGUAGE\\]/g, mainLangName);
         const selectedModel = elements.modelSelect.value || 'gemini-1.5-flash';
-        const data = await callGeminiAPI(word, apiKey, customPrompt, selectedModel);
 
-        // Check for AI-generated error (e.g. unrecognizable word)
-        if (data.error) {
-            showStatus(`AI could not process "${word}": ${data.error}`, 'error');
-            return;
-        }
+        // Process concurrently
+        const promises = words.map(async (word) => {
+            try {
+                const data = await callGeminiAPI(word, apiKey, customPrompt, selectedModel);
+                processedCount++;
 
-        // Add unique ID for tracking/Anki GUID
-        data.id = generateUniqueId();
+                // Update Progress UI
+                if (words.length > 1) {
+                    const percent = Math.round((processedCount / words.length) * 100);
+                    elements.batchProgressText.textContent = `Processing ${processedCount} of ${words.length}...`;
+                    elements.batchProgressBar.style.width = `${percent}%`;
+                    elements.batchProgressPercentage.textContent = `${percent}%`;
+                }
 
-        // Add to staging area
-        stagedWords.unshift(data); // Add to beginning of array
+                if (data.error) {
+                    failedWords.push(word);
+                    return null;
+                }
+
+                data.id = generateUniqueId();
+                return data;
+            } catch (err) {
+                processedCount++;
+                failedWords.push(word);
+                // Update Progress UI on error too
+                if (words.length > 1) {
+                    const percent = Math.round((processedCount / words.length) * 100);
+                    elements.batchProgressText.textContent = `Processing ${processedCount} of ${words.length}...`;
+                    elements.batchProgressBar.style.width = `${percent}%`;
+                    elements.batchProgressPercentage.textContent = `${percent}%`;
+                }
+                return null;
+            }
+        });
+
+        const results = await Promise.all(promises);
+
+        // Handle results (incorporating root grouping logic to come in the next step, for now just push)
+        results.forEach(data => {
+            if (data) {
+                successCount++;
+                processAndMergeWord(data); // We will define this next
+            }
+        });
 
         // Clear input and update UI
-        elements.wordInput.value = '';
-        showStatus(`Successfully generated data for "${word}"`, 'success');
+        if (failedWords.length > 0) {
+            elements.wordInput.value = failedWords.join(', ');
+            if (successCount > 0) {
+                showStatus(`Successfully generated ${successCount} words. Failed on ${failedWords.length} words.`, 'error');
+            } else {
+                showStatus(`Failed to generate data for all words.`, 'error');
+            }
+        } else {
+            elements.wordInput.value = '';
+            if (words.length > 1) {
+                showStatus(`Successfully generated data for all ${successCount} words!`, 'success');
+            } else {
+                showStatus(`Successfully generated data for "${words[0]}"!`, 'success');
+            }
+        }
+
         updateUI();
         saveState();
 
@@ -240,6 +313,52 @@ async function handleGenerate() {
     } finally {
         elements.generateBtn.disabled = false;
         elements.generateBtn.textContent = 'Generate Data';
+
+        setTimeout(() => {
+            if (elements.batchProgressContainer) {
+                elements.batchProgressContainer.classList.add('hidden');
+            }
+        }, 2000); // Hide progress after a brief delay
+    }
+}
+
+function processAndMergeWord(data) {
+    const mainLang = elements.mainLanguage ? elements.mainLanguage.value : 'pl';
+    const rootKey = `root_${mainLang}`;
+    const wordKey = `word_${mainLang}`;
+
+    // Find the root form of the new word
+    const newRoot = data[rootKey];
+
+    if (!newRoot) {
+        // Fallback: if no root is found in the response, just add it normally but initialize as a group
+        data._isGroup = true;
+        data._words = [data];
+        stagedWords.unshift(data);
+        return;
+    }
+
+    // Check if a group with this root already exists in stagedWords
+    const existingGroupIndex = stagedWords.findIndex(item => item[rootKey] === newRoot && item._isGroup);
+
+    if (existingGroupIndex !== -1) {
+        // Group exists, check if this specific word is already in the group
+        const existingGroup = stagedWords[existingGroupIndex];
+        const wordAlreadyExists = existingGroup._words.some(w => w[wordKey] === data[wordKey]);
+
+        if (!wordAlreadyExists) {
+            existingGroup._words.push(data);
+
+            // Move this group to the top of the list since it was recently updated
+            stagedWords.splice(existingGroupIndex, 1);
+            stagedWords.unshift(existingGroup);
+        }
+    } else {
+        // No existing group for this root.
+        // We will restructure the data object to represent a "Group"
+        // We copy the base data to represent the group's "primary" entry, and add a _words array
+        const newGroup = { ...data, _isGroup: true, _words: [data] };
+        stagedWords.unshift(newGroup);
     }
 }
 
@@ -292,7 +411,9 @@ async function callGeminiAPI(word, apiKey, customInstruction, model) {
 
 // Update the UI (Staging area list and counts)
 function updateUI() {
-    elements.wordCount.textContent = `${stagedWords.length} words`;
+    // Count total individual words, not just groups
+    const totalWords = stagedWords.reduce((acc, curr) => acc + (curr._isGroup ? curr._words.length : 1), 0);
+    elements.wordCount.textContent = `${totalWords} words`;
 
     if (stagedWords.length === 0) {
         elements.emptyState.classList.remove('hidden');
@@ -313,64 +434,73 @@ function updateUI() {
                 .replace(/'/g, '&#039;');
         };
 
-        stagedWords.forEach((wordObj, index) => {
+        stagedWords.forEach((groupObj) => {
+            if (!groupObj._isGroup) return; // Fallback safety
+
             const card = document.createElement('div');
-            card.className = 'bg-[#09090B] p-4 rounded-lg border border-gray-600 relative group';
+            card.className = 'bg-[#09090B] p-4 rounded-xl border border-[#27272A] relative group mb-4';
 
-            const safeId = escapeHTML(wordObj.id);
+            const safeId = escapeHTML(groupObj.id);
+            const mainRootKey = Object.keys(groupObj).find(k => k.startsWith('root_')) || 'root_pl';
+            const rootWord = groupObj[mainRootKey];
 
-            card.innerHTML = `                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
+            // Generate list of all words in this group
+            const wordKey = Object.keys(groupObj).find(k => k.startsWith('word_')) || 'word_pl';
+            const allWords = groupObj._words.map(w => w[wordKey]).join(', ');
+
+            card.innerHTML = `
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-3 border-b border-[#27272A]">
                     <div class="flex-1">
-                        <div class="flex items-center space-x-3">
-                            <h3 class="text-xl font-bold text-blue-400">${escapeHTML(wordObj[Object.keys(wordObj).find(k => k.startsWith('word_'))])}</h3>
-                            <span class="px-2 py-0.5 rounded text-xs font-semibold bg-[#27272A] text-zinc-100">${escapeHTML(wordObj.part_of_speech)}</span>
+                        <div class="flex items-center space-x-3 mb-1">
+                            <span class="px-2 py-0.5 rounded text-xs font-semibold bg-[#F97316]/20 text-[#F97316] uppercase tracking-wider">Root</span>
+                            <h3 class="text-xl font-bold text-zinc-100">${escapeHTML(rootWord)}</h3>
                         </div>
-                        <p class="text-sm text-zinc-400 mt-1">Root: <span class="text-gray-300 font-medium">${escapeHTML(wordObj[Object.keys(wordObj).find(k => k.startsWith('root_'))] || '')}</span></p>
+                        <p class="text-sm text-zinc-400 mt-1">Associated Words: <span class="text-zinc-200 font-medium">${escapeHTML(allWords)}</span></p>
                     </div>
 
                     <div class="flex space-x-2 mt-2 sm:mt-0 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onclick="openEditModal('${safeId}')" class="text-blue-400 hover:text-blue-300 p-1 bg-[#18181B] rounded">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        <button onclick="openEditModal('${safeId}')" class="text-zinc-400 hover:text-white p-2 bg-[#18181B] rounded-lg transition-colors border border-[#27272A]">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                         </button>
-                        <button onclick="deleteWord('${safeId}')" class="text-red-400 hover:text-red-300 p-1 bg-[#18181B] rounded">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        <button onclick="deleteWord('${safeId}')" class="text-red-400 hover:text-red-300 p-2 bg-[#18181B] rounded-lg transition-colors border border-[#27272A]">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     </div>
                 </div>
 
-                <div class="mb-3 bg-[#18181B] p-3 rounded-md border border-gray-600">
-                    ${Object.keys(wordObj).filter(k => k.startsWith('translation_')).map(k => {
-                        const lang = k.split('_')[1].toUpperCase();
-                        return `<p class="text-md font-medium text-zinc-100">${lang}: ${escapeHTML(wordObj[k])}</p>`;
+                <div class="space-y-4">
+                    ${groupObj._words.map((w, idx) => {
+                        return `
+                        <div class="bg-[#18181B] p-3 rounded-lg border border-[#27272A]">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <span class="font-bold text-[#F97316]">${escapeHTML(w[wordKey])}</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#27272A] text-zinc-300 uppercase">${escapeHTML(w.part_of_speech || '')}</span>
+                            </div>
+
+                            <div class="space-y-1">
+                                ${Object.keys(w).filter(k => k.startsWith('translation_')).map(k => {
+                                    const lang = k.split('_')[1].toUpperCase();
+                                    return `<p class="text-sm text-zinc-200"><span class="font-medium text-zinc-500 mr-2">${lang}</span> ${escapeHTML(w[k])}</p>`;
+                                }).join('')}
+                            </div>
+
+                            <div class="mt-2 space-y-1">
+                                ${Object.keys(w).filter(k => k.startsWith('example_')).map(k => {
+                                    const parts = k.split('_');
+                                    const lang = parts[parts.length - 1].toUpperCase();
+                                    return `<p class="text-xs text-zinc-400 italic border-l-2 border-[#27272A] pl-2 py-0.5"><span class="font-medium text-zinc-500 mr-1">${lang}</span> ${escapeHTML(w[k])}</p>`;
+                                }).join('')}
+                            </div>
+                        </div>
+                        `
                     }).join('')}
                 </div>
-
-                <div class="text-sm space-y-3 text-gray-300 pl-1">
-                    ${(() => {
-                        const mainLangKey = Object.keys(wordObj).find(k => k.startsWith('word_'));
-                        const mainLang = mainLangKey ? mainLangKey.split('_')[1] : 'pl';
-                        let exHtml = '';
-                        [1, 2].forEach(num => {
-                            if (wordObj[`example_${num}_${mainLang}`]) {
-                                exHtml += `<div>
-                                    <p class="font-medium text-zinc-100"><span class="font-bold text-zinc-400 mr-1">${num}.</span>${escapeHTML(wordObj[`example_${num}_${mainLang}`])}</p>`;
-
-                                // Find target language examples
-                                Object.keys(wordObj).forEach(k => {
-                                    if (k.startsWith(`example_${num}_`) && !k.endsWith(`_${mainLang}`)) {
-                                        const lang = k.split('_')[2].toUpperCase();
-                                        exHtml += `<p class="text-zinc-400 italic text-xs mt-0.5">${lang}: ${escapeHTML(wordObj[k])}</p>`;
-                                    }
-                                });
-                                exHtml += `</div>`;
-                            }
-                        });
-                        return exHtml;
-                    })()}
-                </div>`;
+            `;
             elements.wordsContainer.appendChild(card);
         });
     }
+
+    elements.exportAnkiBtn.disabled = stagedWords.length === 0;
 }
 
 // Delete word from staging
@@ -382,59 +512,66 @@ window.deleteWord = function(id) {
 
 // Edit Modal Functions
 window.openEditModal = function(id) {
-    const wordObj = stagedWords.find(w => w.id === id);
-    if (!wordObj) return;
+    const groupObj = stagedWords.find(w => w.id === id);
+    if (!groupObj) return;
 
-    document.getElementById('edit-id').value = wordObj.id;
+    document.getElementById('edit-id').value = groupObj.id;
 
     // Clear and build dynamic fields
     elements.dynamicEditFields.innerHTML = '';
 
-    // Always show word, root, pos
-    const mainWordKey = Object.keys(wordObj).find(k => k.startsWith('word_')) || 'word_pl';
-    const mainRootKey = Object.keys(wordObj).find(k => k.startsWith('root_')) || 'root_pl';
+    const mainRootKey = Object.keys(groupObj).find(k => k.startsWith('root_')) || 'root_pl';
+    const mainWordKey = Object.keys(groupObj).find(k => k.startsWith('word_')) || 'word_pl';
 
-    const baseFields = [
-        { key: mainWordKey, label: 'Target Word' },
-        { key: mainRootKey, label: 'Root / Base Form' },
-        { key: 'part_of_speech', label: 'Part of Speech' }
-    ];
+    // Create Root Editor Field
+    const rootDiv = document.createElement('div');
+    rootDiv.className = 'mb-6 pb-4 border-b border-[#27272A]';
+    rootDiv.innerHTML = `
+        <label class="block text-sm font-bold text-[#F97316] mb-1">Shared Root Form</label>
+        <input type="text" class="w-full px-3 py-2 border border-[#27272A] bg-[#09090B] text-zinc-100 rounded-xl focus:outline-none focus:border-[#F97316] edit-dynamic-input" data-is-root="true" data-key="${mainRootKey}" value="${(groupObj[mainRootKey] || '').replace(/"/g, '&quot;')}">
+    `;
+    elements.dynamicEditFields.appendChild(rootDiv);
 
-    // Add translations
-    Object.keys(wordObj).filter(k => k.startsWith('translation_')).forEach(k => {
-        baseFields.push({ key: k, label: `Translation (${k.split('_')[1].toUpperCase()})` });
+    // Loop through each word in the group and generate fields
+    groupObj._words.forEach((wordObj, index) => {
+        const wordCard = document.createElement('div');
+        wordCard.className = 'bg-[#18181B] p-4 rounded-xl border border-[#27272A] mb-4';
+        wordCard.innerHTML = `<h4 class="text-md font-bold text-zinc-100 mb-3 pb-2 border-b border-[#27272A]">Word ${index + 1}</h4>`;
+
+        const fields = [];
+        fields.push({ key: mainWordKey, label: 'Target Word' });
+        fields.push({ key: 'part_of_speech', label: 'Part of Speech' });
+
+        Object.keys(wordObj).forEach(key => {
+            if (key.startsWith('translation_')) {
+                const lang = key.split('_')[1].toUpperCase();
+                fields.push({ key: key, label: `Translation (${lang})` });
+            }
+            if (key.startsWith('example_')) {
+                const parts = key.split('_');
+                const lang = parts[parts.length - 1].toUpperCase();
+                fields.push({ key: key, label: `Example (${lang})` });
+            }
+        });
+
+        fields.forEach(field => {
+            const val = wordObj[field.key] || '';
+            const fieldDiv = document.createElement('div');
+            fieldDiv.className = 'mb-3';
+
+            fieldDiv.innerHTML = `
+                <label class="block text-xs font-medium text-zinc-400 mb-1">${field.label}</label>
+                ${field.key.startsWith('example_') ?
+                    `<textarea rows="2" class="w-full px-3 py-2 border border-[#27272A] bg-[#09090B] text-zinc-100 rounded-xl focus:outline-none focus:border-[#F97316] text-sm edit-dynamic-input" data-word-idx="${index}" data-key="${field.key}">${val.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>`
+                    :
+                    `<input type="text" class="w-full px-3 py-2 border border-[#27272A] bg-[#09090B] text-zinc-100 rounded-xl focus:outline-none focus:border-[#F97316] edit-dynamic-input" data-word-idx="${index}" data-key="${field.key}" value="${val.replace(/"/g, '&quot;')}">`
+                }
+            `;
+            wordCard.appendChild(fieldDiv);
+        });
+
+        elements.dynamicEditFields.appendChild(wordCard);
     });
-
-    // Inject base fields
-    baseFields.forEach(f => {
-        elements.dynamicEditFields.innerHTML += `
-            <div>
-                <label class="block text-sm font-medium text-gray-300">${f.label}</label>
-                <input type="text" id="edit-${f.key}" data-key="${f.key}" value="${(wordObj[f.key] || '').replace(/"/g, '&quot;')}" class="dynamic-edit-input mt-1 w-full px-3 py-2 border border-gray-600 bg-[#09090B] text-gray-100 rounded-md focus:outline-none focus:border-blue-500">
-            </div>
-        `;
-    });
-
-    // Add examples
-    elements.dynamicEditFields.innerHTML += `<div class="col-span-2 space-y-4 mt-2">`;
-    [1, 2].forEach(num => {
-        const exampleKeys = Object.keys(wordObj).filter(k => k.startsWith(`example_${num}_`));
-        if (exampleKeys.length > 0) {
-            let exHtml = `<div class="p-3 bg-gray-900 rounded border border-[#27272A] space-y-2">
-                <label class="block text-sm font-bold text-gray-300 border-b border-[#27272A] pb-1">Example ${num}</label>`;
-            exampleKeys.forEach(k => {
-                const lang = k.split('_')[2].toUpperCase();
-                exHtml += `
-                    <div class="flex items-center space-x-2">
-                        <span class="text-xs font-bold text-gray-500 w-8">${lang}</span>
-                        <input type="text" id="edit-${k}" data-key="${k}" value="${(wordObj[k] || '').replace(/"/g, '&quot;')}" class="dynamic-edit-input flex-1 px-3 py-1.5 border border-gray-600 bg-[#09090B] text-gray-100 rounded-md focus:outline-none focus:border-blue-500 text-sm">
-                    </div>`;
-            });
-            exHtml += `</div>`;
-            elements.dynamicEditFields.innerHTML += exHtml;
-        }
-    });
-    elements.dynamicEditFields.innerHTML += `</div>`;
 
     elements.editModal.classList.remove('hidden');
 };
@@ -448,14 +585,26 @@ function saveEditedWord() {
     const index = stagedWords.findIndex(w => w.id === id);
 
     if (index !== -1) {
-        const inputs = elements.dynamicEditFields.querySelectorAll('.dynamic-edit-input');
-        const updatedWord = { id: id };
+        const groupObj = stagedWords[index];
+        const inputs = elements.dynamicEditFields.querySelectorAll('.edit-dynamic-input');
+
+        let newRootVal = '';
 
         inputs.forEach(input => {
-            updatedWord[input.getAttribute('data-key')] = input.value.trim();
+            if (input.getAttribute('data-is-root') === 'true') {
+                newRootVal = input.value.trim();
+                groupObj[input.getAttribute('data-key')] = newRootVal;
+            } else {
+                const wIdx = parseInt(input.getAttribute('data-word-idx'), 10);
+                const key = input.getAttribute('data-key');
+                groupObj._words[wIdx][key] = input.value.trim();
+
+                // Keep the root in sync for each individual word object too
+                const mainRootKey = Object.keys(groupObj).find(k => k.startsWith('root_')) || 'root_pl';
+                groupObj._words[wIdx][mainRootKey] = newRootVal;
+            }
         });
 
-        stagedWords[index] = updatedWord;
         updateUI();
         saveState();
         closeEditModal();

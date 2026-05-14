@@ -143,63 +143,74 @@ function playAudio(elementId) {
         name: `Dynamic Vocabulary Model ${mainLang.toUpperCase()}`,
         id: MODEL_ID.toString(),
         flds: uniqueFlds,
-        req: [
-            [0, 'all', [0]]
-        ],
-        tmpls: [
-            {
-                name: 'Card 1',
-                qfmt: qfmt,
-                afmt: afmt
-            }
-        ],
-        css: `.card {
-            font-family: Arial, sans-serif;
-            font-size: 20px;
-            text-align: center;
-            color: #e0e0e0;
-            background-color: #202020;
-            padding: 20px;
-        }
-        .word { font-size: 32px; font-weight: bold; color: #4b8ffd; margin-bottom: 5px; }
-        .pos-gender { font-size: 16px; font-weight: bold; color: #aaa; margin-bottom: 10px; }
-        .root { font-size: 16px; color: #aaa; margin-bottom: 15px; }
-        [class^="translation-"] { font-size: 20px; font-weight: bold; color: #e0e0e0; margin-bottom: 5px; }
-        .example { font-size: 20px; margin-top: 15px; font-weight: 500; }
-        .example-trans { font-size: 16px; color: #999; font-style: italic; margin-top: 3px; }
-        hr { border: 0; border-bottom: 1px solid #444; margin: 20px 0; }
-        .play-btn { background: #333; color: #fff; border: 1px solid #555; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 14px; margin-top: 5px; }
-        .play-btn:hover { background: #444; }`
+        req: [[0, 'all', [0]]],
+        tmpls: [{ name: 'Card 1', qfmt: qfmt, afmt: afmt }],
+        css: `.card { font-family: Arial, sans-serif; font-size: 20px; text-align: center; color: #e0e0e0; background-color: #202020; padding: 20px; }
+.word { font-size: 32px; font-weight: bold; color: #4b8ffd; margin-bottom: 5px; }
+.pos-gender { font-size: 16px; font-weight: bold; color: #aaa; margin-bottom: 10px; }
+.root { font-size: 16px; color: #aaa; margin-bottom: 15px; }
+[class^="translation-"] { font-size: 20px; font-weight: bold; color: #e0e0e0; margin-bottom: 5px; }
+.example { font-size: 20px; margin-top: 15px; font-weight: 500; }
+.example-trans { font-size: 16px; color: #999; font-style: italic; margin-top: 3px; }
+hr { border: 0; border-bottom: 1px solid #444; margin: 20px 0; }
+.play-btn { background: #333; color: #fff; border: 1px solid #555; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 14px; margin-top: 5px; }
+.play-btn:hover { background: #444; }`
     });
 
     const DECK_ID = hashString(deckName);
     const deck = new GenankiDeck(DECK_ID.toString(), deckName);
 
-    wordsArray.forEach(wordObj => {
-        const fieldValues = uniqueFlds.map(f => {
-            if (f.name === 'Word') return wordObj[`word_${mainLang}`] || '';
-            if (f.name === 'Root') return wordObj[`root_${mainLang}`] || '';
-            if (f.name === 'PartOfSpeech') return wordObj.part_of_speech || '';
+    wordsArray.forEach(groupObj => {
+        if (!groupObj._isGroup || !groupObj._words || groupObj._words.length === 0) return;
 
-            if (f.name.startsWith('Translation_')) {
-                const lang = f.name.split('_')[1].toLowerCase();
-                return wordObj[`translation_${lang}`] || '';
+        const mainWordKey = `word_${mainLang}`;
+        const mainRootKey = `root_${mainLang}`;
+
+        const fieldValues = [];
+
+        uniqueFlds.forEach(field => {
+            const fName = field.name;
+
+            if (fName === 'Word') {
+                fieldValues.push(groupObj._words.map(w => w[mainWordKey]).join(', '));
+            } else if (fName === 'Root') {
+                fieldValues.push(groupObj[mainRootKey] || '');
+            } else if (fName === 'PartOfSpeech') {
+                const posSet = new Set(groupObj._words.map(w => w.part_of_speech).filter(Boolean));
+                fieldValues.push(Array.from(posSet).join(', '));
+            } else if (fName.startsWith('Translation_')) {
+                const lang = fName.split('_')[1].toLowerCase();
+                const transKey = `translation_${lang}`;
+                let aggregatedTrans = groupObj._words.map(w => {
+                    const trans = w[transKey] || '';
+                    if (!trans) return '';
+                    return groupObj._words.length > 1 ? `<b>${w[mainWordKey]}</b>: ${trans}` : trans;
+                }).filter(Boolean).join('<br><br>');
+                fieldValues.push(aggregatedTrans);
+            } else if (fName.startsWith('Example')) {
+                // Example1_EN, Example2_PL, etc.
+                const parts = fName.split('_');
+                const exNum = parts[0].replace('Example', ''); // '1' or '2'
+                const lang = parts[1].toLowerCase(); // 'en' or 'pl'
+
+                const exKey = `example_${exNum}_${lang}`;
+                let aggregatedEx = groupObj._words.map(w => {
+                    const ex = w[exKey] || '';
+                    if (!ex) return '';
+                    return groupObj._words.length > 1 ? `<b>${w[mainWordKey]}</b>: <br>${ex}` : ex;
+                }).filter(Boolean).join('<br><br>');
+                fieldValues.push(aggregatedEx);
+            } else {
+                fieldValues.push('');
             }
-            if (f.name.startsWith('Example')) {
-                const parts = f.name.split('_'); // e.g. Example1_PL
-                const num = parts[0].replace('Example', ''); // 1
-                const lang = parts[1].toLowerCase(); // pl
-                return wordObj[`example_${num}_${lang}`] || '';
-            }
-            return '';
         });
 
-        const note = new GenankiNote(
-            model,
-            fieldValues,
-            null,
-            wordObj.id
-        );
+        const note = new GenankiNote({
+            model: model,
+            fields: fieldValues,
+            tags: ['AnkiAIDeckMaker'],
+            guid: groupObj.id
+        });
         deck.addNote(note);
     });
 
