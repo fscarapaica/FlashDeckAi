@@ -27,11 +27,6 @@ const elements = {
     // Edit Modal Elements
     editModal: document.getElementById('edit-modal'),
     editId: document.getElementById('edit-id'),
-    editWord: document.getElementById('edit-word'),
-    editRoot: document.getElementById('edit-root'),
-    editTranslation: document.getElementById('edit-translation'),
-    editEx1Pl: document.getElementById('edit-ex1-pl'),
-    editEx1En: document.getElementById('edit-ex1-en'),
     saveEditBtn: document.getElementById('save-edit-btn'),
     cancelEditBtn: document.getElementById('cancel-edit-btn'),
     mainLanguage: document.getElementById('main-language'),
