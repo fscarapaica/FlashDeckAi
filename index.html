@@ -25,9 +25,19 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #3f3f46;
+            border-radius: 10px;
+        }
     </style>
 </head>
-<body class="bg-[#09090B] text-zinc-100 font-sans min-h-screen">
+<body class="bg-[#09090B] text-zinc-100 font-sans h-screen overflow-hidden flex flex-col">
 
     <!-- Navbar -->
     <nav class="bg-[#18181B] shadow-md p-4 z-10 border-b border-[#27272A] relative">
@@ -52,10 +62,10 @@
     </nav>
 
     <!-- Main Container -->
-    <main class="max-w-screen-xl mx-auto mt-8 px-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <main class="max-w-screen-xl mx-auto mt-8 px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 min-h-0">
 
         <!-- Left Column: Input and Deck Info -->
-        <div class="lg:col-span-4 space-y-6">
+        <div class="lg:col-span-4 space-y-6 overflow-y-auto pr-2 pb-8 h-full custom-scrollbar">
 
             <!-- Vocabulary Input Card -->
             <div class="bg-[#18181B] p-6 rounded-2xl shadow-md border border-[#27272A]">
@@ -116,6 +126,14 @@
 
 
 
+
+                        <div class="mt-4 mb-4 border border-[#27272A] bg-[#09090B] p-4 rounded-xl">
+                            <label class="block text-sm font-medium text-zinc-300 mb-2 flex justify-between">
+                                <span>TTS Speed</span>
+                                <span id="tts-speed-display" class="text-zinc-500">1.0x</span>
+                            </label>
+                            <input type="range" id="tts-speed-slider" min="0.5" max="1.5" step="0.1" value="1.0" class="w-full accent-[#F97316]">
+                        </div>
 
                     <label class="block text-sm font-medium text-zinc-300 mb-1 mt-3">Main Language</label>
                         <select id="main-language" class="w-full px-3 py-2 border border-[#27272A] bg-[#09090B] text-zinc-100 rounded-xl focus:outline-none focus:border-[#F97316] mb-3">
@@ -195,11 +213,23 @@
         </div>
 
         <!-- Right Column: Staging Area -->
-        <div class="lg:col-span-8">
-            <div class="bg-[#18181B] p-6 rounded-2xl shadow-md border border-[#27272A] min-h-[500px] h-full flex flex-col">
-                <div class="flex justify-between items-center mb-4 border-b border-[#27272A] pb-2">
-                    <h2 class="text-xl font-semibold text-zinc-100">Staging Area</h2>
-                    <span id="word-count" class="text-sm bg-blue-900 text-blue-200 py-1 px-3 rounded-full font-medium border border-blue-800">0 words</span>
+        <div class="lg:col-span-8 overflow-y-auto pr-2 pb-8 h-full custom-scrollbar">
+            <div class="bg-[#18181B] p-6 rounded-2xl shadow-md border border-[#27272A] min-h-full flex flex-col">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 border-b border-[#27272A] pb-4 gap-4">
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-xl font-semibold text-zinc-100">Staging Area</h2>
+                        <span id="word-count" class="text-sm bg-blue-900 text-blue-200 py-1 px-3 rounded-full font-medium border border-blue-800">0 words</span>
+                    </div>
+
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <div class="relative w-full sm:w-48">
+                            <input type="text" id="search-cards-input" placeholder="Search cards..." class="w-full pl-8 pr-3 py-1.5 border border-[#27272A] bg-[#09090B] text-zinc-100 rounded-xl text-sm focus:outline-none focus:border-[#F97316]">
+                            <svg class="w-4 h-4 text-zinc-500 absolute left-2.5 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                        <button id="toggle-collapse-all-btn" class="px-3 py-1.5 bg-[#09090B] hover:bg-[#27272A] border border-[#27272A] text-zinc-300 text-sm rounded-xl transition whitespace-nowrap">
+                            Collapse All
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Words List -->
