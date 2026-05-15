@@ -65,12 +65,15 @@ function exportToAnki(wordsArray, deckName) {
     const qfmt = `<div class="word">{{Front}}</div>
 {{tts ${mainLang}_${mainLang.toUpperCase()}:Front}}`;
 
+    const ttsSpeed = window.getTtsSpeed ? window.getTtsSpeed() : 1.0;
+
     // The back template just renders the generic HTML we build in JS
     const afmt = `{{Back}}
 <script>
 function playAudio(text) {
     var msg = new SpeechSynthesisUtterance(text);
     msg.lang = '${mainLang}-${mainLang.toUpperCase()}';
+    msg.rate = ${ttsSpeed};
     window.speechSynthesis.speak(msg);
 }
 </script>`;

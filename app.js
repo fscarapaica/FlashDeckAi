@@ -8,6 +8,8 @@ const elements = {
     deckNameInput: document.getElementById('deck-name'),
     exportJsonBtn: document.getElementById('export-json-btn'),
     importJsonInput: document.getElementById('import-json-file'),
+    searchInput: document.getElementById('search-cards-input'),
+    toggleCollapseBtn: document.getElementById('toggle-collapse-all-btn'),
     wordInput: document.getElementById('polish-word-input'),
     generateBtn: document.getElementById('generate-btn'),
     statusMessage: document.getElementById('status-message'),
@@ -42,6 +44,7 @@ const elements = {
 
 // Initialize App
 function init() {
+        loadTtsSpeed();
     // Load API key from local storage
     const savedKey = localStorage.getItem('gemini_api_key');
     if (savedKey) {
@@ -54,6 +57,7 @@ function init() {
     if (savedWords) {
         try {
             stagedWords = JSON.parse(savedWords);
+            updateUI(); // Make sure to render loaded words
         } catch(e) {
             console.error("Could not parse saved words");
         }
@@ -92,7 +96,41 @@ function init() {
     }
 
 
+    // --- State for UI toggles ---
+    let isAllCollapsed = false;
+    let searchQuery = '';
+
+    // --- TTS Speed Slider ---
+    const ttsSpeedSlider = document.getElementById('tts-speed-slider');
+    const ttsSpeedDisplay = document.getElementById('tts-speed-display');
+
+    const loadTtsSpeed = () => {
+        const speed = localStorage.getItem('ttsSpeed') || '1.0';
+        ttsSpeedSlider.value = speed;
+        ttsSpeedDisplay.textContent = `${speed}x`;
+    };
+
+    ttsSpeedSlider.addEventListener('input', (e) => {
+        const speed = e.target.value;
+        ttsSpeedDisplay.textContent = parseFloat(speed).toFixed(1) + 'x';
+        localStorage.setItem('ttsSpeed', speed);
+    });
+
+    // Make it available to anki-export.js
+    window.getTtsSpeed = () => parseFloat(ttsSpeedSlider.value);
+
     // Event Listeners
+    elements.searchInput.addEventListener('input', (e) => {
+        searchQuery = e.target.value.toLowerCase();
+        updateUI();
+    });
+
+    elements.toggleCollapseBtn.addEventListener('click', () => {
+        isAllCollapsed = !isAllCollapsed;
+        elements.toggleCollapseBtn.textContent = isAllCollapsed ? 'Expand All' : 'Collapse All';
+        updateUI();
+    });
+
     elements.saveApiKeyBtn.addEventListener('click', saveApiKey);
     elements.generateBtn.addEventListener('click', handleGenerate);
     elements.exportJsonBtn.addEventListener('click', exportJson);
@@ -447,38 +485,52 @@ function updateUI() {
         stagedWords.forEach((groupObj) => {
             if (!groupObj._isGroup) return; // Fallback safety
 
-            const card = document.createElement('div');
-            card.className = 'bg-[#09090B] p-4 rounded-xl border border-[#27272A] relative group mb-4';
-
             const safeId = escapeHTML(groupObj.id);
             const mainRootKey = Object.keys(groupObj).find(k => k.startsWith('root_')) || 'root_pl';
-            const rootWord = groupObj[mainRootKey];
+            const rootWord = groupObj[mainRootKey] || '';
 
             // Generate list of all words in this group
             const wordKey = Object.keys(groupObj).find(k => k.startsWith('word_')) || 'word_pl';
             const allWords = groupObj._words.map(w => w[wordKey]).join(', ');
 
-            card.innerHTML = `
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-3 border-b border-[#27272A]">
-                    <div class="flex-1">
-                        <div class="flex items-center space-x-3 mb-1">
-                            <span class="px-2 py-0.5 rounded text-xs font-semibold bg-[#F97316]/20 text-[#F97316] uppercase tracking-wider">Root</span>
-                            <h3 class="text-xl font-bold text-zinc-100">${escapeHTML(rootWord)}</h3>
+            // Filtering based on search query
+            if (searchQuery) {
+                const matchesRoot = rootWord.toLowerCase().includes(searchQuery);
+                const matchesWords = allWords.toLowerCase().includes(searchQuery);
+                if (!matchesRoot && !matchesWords) {
+                    return; // Skip rendering this card
+                }
+            }
+
+            const card = document.createElement('div');
+            card.className = 'bg-[#09090B] p-4 rounded-xl border border-[#27272A] relative group mb-4';
+
+            // Use closure state to track if this specific card is collapsed. Default to global state.
+            let isCollapsed = isAllCollapsed;
+
+            const renderCard = () => {
+                const displayStyle = isCollapsed ? 'none' : 'block';
+                card.innerHTML = `
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center cursor-pointer select-none card-header" ${!isCollapsed ? 'class="mb-4 pb-3 border-b border-[#27272A]"' : ''}>
+                        <div class="flex-1 pointer-events-none">
+                            <div class="flex items-center space-x-3 mb-1">
+                                <span class="px-2 py-0.5 rounded text-xs font-semibold bg-[#F97316]/20 text-[#F97316] uppercase tracking-wider">Root</span>
+                                <h3 class="text-xl font-bold text-zinc-100">${escapeHTML(rootWord)}</h3>
+                            </div>
+                            <p class="text-sm text-zinc-400 mt-1">Associated Words: <span class="text-zinc-200 font-medium">${escapeHTML(allWords)}</span></p>
                         </div>
-                        <p class="text-sm text-zinc-400 mt-1">Associated Words: <span class="text-zinc-200 font-medium">${escapeHTML(allWords)}</span></p>
                     </div>
 
-                    <div class="flex space-x-2 mt-2 sm:mt-0 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onclick="openEditModal('${safeId}')" class="text-zinc-400 hover:text-white p-2 bg-[#18181B] rounded-lg transition-colors border border-[#27272A]">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                        </button>
-                        <button onclick="deleteWord('${safeId}')" class="text-red-400 hover:text-red-300 p-2 bg-[#18181B] rounded-lg transition-colors border border-[#27272A]">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="space-y-4">
+                    <div class="card-body" style="display: ${displayStyle};">
+                        <div class="flex justify-end space-x-2 mb-4 pb-3 border-b border-[#27272A]">
+                            <button onclick="openEditModal('${safeId}')" class="text-zinc-400 hover:text-white p-2 bg-[#18181B] rounded-lg transition-colors border border-[#27272A]">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            </button>
+                            <button onclick="deleteWord('${safeId}')" class="text-red-400 hover:text-red-300 p-2 bg-[#18181B] rounded-lg transition-colors border border-[#27272A]">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                        <div class="space-y-4">
                     ${groupObj._words.map((w, idx) => {
                         return `
                         <div class="bg-[#18181B] p-3 rounded-lg border border-[#27272A]">
@@ -504,8 +556,17 @@ function updateUI() {
                         </div>
                         `
                     }).join('')}
-                </div>
-            `;
+                        </div>
+                    </div>
+                `;
+
+                card.querySelector('.card-header').addEventListener('click', () => {
+                    isCollapsed = !isCollapsed;
+                    renderCard();
+                });
+            };
+
+            renderCard();
             elements.wordsContainer.appendChild(card);
         });
     }
