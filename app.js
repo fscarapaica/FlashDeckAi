@@ -39,7 +39,7 @@ const elements = {
 
 // Initialize App
 function init() {
-        loadTtsSpeed();
+        // loadTtsSpeed(); moved below its definition
     // Load API key from local storage
     const savedKey = localStorage.getItem('gemini_api_key');
     if (savedKey) {
@@ -92,14 +92,16 @@ function init() {
 
 
     // --- State for UI toggles ---
-    let isAllCollapsed = false;
-    let searchQuery = '';
+window.isAllCollapsed = false;
+window.searchQuery = '';
 
     // --- TTS Speed Slider ---
     const ttsSpeedSlider = document.getElementById('tts-speed-slider');
     const ttsSpeedDisplay = document.getElementById('tts-speed-display');
 
-    const loadTtsSpeed = () => {
+    loadTtsSpeed();
+
+    function loadTtsSpeed() {
         const speed = localStorage.getItem('ttsSpeed') || '1.0';
         ttsSpeedSlider.value = speed;
         ttsSpeedDisplay.textContent = `${speed}x`;
@@ -116,13 +118,13 @@ function init() {
 
     // Event Listeners
     elements.searchInput.addEventListener('input', (e) => {
-        searchQuery = e.target.value.toLowerCase();
+        window.searchQuery = e.target.value.toLowerCase();
         updateUI();
     });
 
     elements.toggleCollapseBtn.addEventListener('click', () => {
-        isAllCollapsed = !isAllCollapsed;
-        elements.toggleCollapseBtn.textContent = isAllCollapsed ? 'Expand All' : 'Collapse All';
+        window.isAllCollapsed = !window.isAllCollapsed;
+        elements.toggleCollapseBtn.textContent = window.isAllCollapsed ? 'Expand All' : 'Collapse All';
         updateUI();
     });
 
@@ -489,9 +491,9 @@ function updateUI() {
             const allWords = groupObj._words.map(w => w[wordKey]).join(', ');
 
             // Filtering based on search query
-            if (searchQuery) {
-                const matchesRoot = rootWord.toLowerCase().includes(searchQuery);
-                const matchesWords = allWords.toLowerCase().includes(searchQuery);
+            if (window.searchQuery) {
+                const matchesRoot = rootWord.toLowerCase().includes(window.searchQuery);
+                const matchesWords = allWords.toLowerCase().includes(window.searchQuery);
                 if (!matchesRoot && !matchesWords) {
                     return; // Skip rendering this card
                 }
@@ -501,7 +503,7 @@ function updateUI() {
             card.className = 'bg-[#09090B] p-4 rounded-xl border border-[#27272A] relative group mb-4';
 
             // Use closure state to track if this specific card is collapsed. Default to global state.
-            let isCollapsed = isAllCollapsed;
+            let isCollapsed = window.isAllCollapsed;
 
             const renderCard = () => {
                 const displayStyle = isCollapsed ? 'none' : 'block';
