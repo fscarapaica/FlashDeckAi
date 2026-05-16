@@ -62,10 +62,10 @@
     </nav>
 
     <!-- Main Container -->
-    <main class="max-w-screen-xl mx-auto mt-8 px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 min-h-0">
+    <main class="max-w-screen-xl mx-auto mt-8 px-8 flex flex-col lg:flex-row gap-8 flex-1 min-h-0">
 
         <!-- Left Column: Input and Deck Info -->
-        <div class="lg:col-span-4 space-y-6 overflow-y-auto pr-2 pb-8 h-full custom-scrollbar">
+        <div class="w-full lg:w-[35%] flex flex-col space-y-6 overflow-y-auto pr-2 pb-8 h-full custom-scrollbar">
 
             <!-- Vocabulary Input Card -->
             <div class="bg-[#18181B] p-6 rounded-2xl shadow-md border border-[#27272A]">
@@ -89,7 +89,6 @@
                     </div>
                 </div>
 
-                <div id="status-message" class="mt-3 text-sm hidden font-medium"></div>
                 <div id="status-message" class="mt-3 text-sm hidden font-medium"></div>
             </div>
 
@@ -213,7 +212,7 @@
         </div>
 
         <!-- Right Column: Staging Area -->
-        <div class="lg:col-span-8 overflow-y-auto pr-2 pb-8 h-full custom-scrollbar">
+        <div class="w-full lg:w-[65%] overflow-y-auto pr-2 pb-8 h-full custom-scrollbar">
             <div class="bg-[#18181B] p-6 rounded-2xl shadow-md border border-[#27272A] min-h-full flex flex-col">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 border-b border-[#27272A] pb-4 gap-4">
                     <div class="flex items-center gap-3">
