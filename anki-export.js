@@ -205,7 +205,8 @@ hr { border: 0; border-bottom: 1px solid #444; margin: 25px 0; }
 // Simple string hash function to generate a consistent Deck ID
 function hashString(str) {
     let hash = 0;
-    for (let i = 0; i < str.length; i++) {
+    const len = str.length;
+    for (let i = 0; i < len; i++) {
         const char = str.charCodeAt(i);
         hash = ((hash << 5) - hash) + char;
         hash = hash & hash; // Convert to 32bit integer
