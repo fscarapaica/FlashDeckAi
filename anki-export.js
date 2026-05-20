@@ -1,4 +1,6 @@
+/* global document, window, Model, Deck, Note, Package, initSqlJs */
 // Wait for everything to load, including sql.js
+if (typeof document !== 'undefined') {
 document.addEventListener('DOMContentLoaded', () => {
 
     const exportAnkiBtn = document.getElementById('export-anki-btn');
@@ -47,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 });
+}
 
 function exportToAnki(wordsArray, deckName) {
     const GenankiModel = typeof Model !== 'undefined' ? Model : (window.genanki ? window.genanki.Model : window.Model);
@@ -212,4 +215,9 @@ function hashString(str) {
     }
     // Make it positive and large enough
     return Math.abs(hash) + 1690000000;
+}
+
+// Export for testing
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { hashString, exportToAnki };
 }
