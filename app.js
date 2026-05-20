@@ -313,11 +313,11 @@ async function handleGenerate() {
 
         const results = await Promise.all(promises);
 
-        // Handle results (incorporating root grouping logic to come in the next step, for now just push)
+        // Process and group results by root
         results.forEach(data => {
             if (data) {
                 successCount++;
-                processAndMergeWord(data); // We will define this next
+                processAndMergeWord(data);
             }
         });
 
