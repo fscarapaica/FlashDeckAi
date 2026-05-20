@@ -39,7 +39,6 @@ const elements = {
 
 // Initialize App
 function init() {
-        // loadTtsSpeed(); moved below its definition
     // Load API key from local storage
     const savedKey = localStorage.getItem('gemini_api_key');
     if (savedKey) {
