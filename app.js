@@ -479,15 +479,31 @@ function updateUI() {
                 .replace(/'/g, '&#039;');
         };
 
+        // Cache keys from the first valid group to avoid redundant Object.keys() calls inside the loop
+        let cachedRootKey = null;
+        let cachedWordKey = null;
+
+        const firstValidGroup = stagedWords.find(g => g._isGroup);
+        if (firstValidGroup) {
+            cachedRootKey = Object.keys(firstValidGroup).find(k => k.startsWith('root_')) || 'root_pl';
+            cachedWordKey = Object.keys(firstValidGroup).find(k => k.startsWith('word_')) || 'word_pl';
+        }
+
         stagedWords.forEach((groupObj) => {
             if (!groupObj._isGroup) return; // Fallback safety
 
             const safeId = escapeHTML(groupObj.id);
-            const mainRootKey = Object.keys(groupObj).find(k => k.startsWith('root_')) || 'root_pl';
+
+            // Fast path: use cached keys if they exist on this object
+            const mainRootKey = (cachedRootKey && groupObj[cachedRootKey] !== undefined)
+                ? cachedRootKey
+                : (Object.keys(groupObj).find(k => k.startsWith('root_')) || 'root_pl');
             const rootWord = groupObj[mainRootKey] || '';
 
             // Generate list of all words in this group
-            const wordKey = Object.keys(groupObj).find(k => k.startsWith('word_')) || 'word_pl';
+            const wordKey = (cachedWordKey && groupObj[cachedWordKey] !== undefined)
+                ? cachedWordKey
+                : (Object.keys(groupObj).find(k => k.startsWith('word_')) || 'word_pl');
             const allWords = groupObj._words.map(w => w[wordKey]).join(', ');
 
             // Filtering based on search query
