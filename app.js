@@ -535,10 +535,10 @@ function updateUI() {
 
                     <div class="card-body" style="display: ${displayStyle};">
                         <div class="flex justify-end space-x-2 mb-4 pb-3 border-b border-[#27272A]">
-                            <button onclick="openEditModal('${safeId}')" class="text-zinc-400 hover:text-white p-2 bg-[#18181B] rounded-lg transition-colors border border-[#27272A]">
+                            <button data-action="edit" data-id="${safeId}" class="text-zinc-400 hover:text-white p-2 bg-[#18181B] rounded-lg transition-colors border border-[#27272A] edit-btn">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                             </button>
-                            <button onclick="deleteWord('${safeId}')" class="text-red-400 hover:text-red-300 p-2 bg-[#18181B] rounded-lg transition-colors border border-[#27272A]">
+                            <button data-action="delete" data-id="${safeId}" class="text-red-400 hover:text-red-300 p-2 bg-[#18181B] rounded-lg transition-colors border border-[#27272A] delete-btn">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
@@ -576,6 +576,22 @@ function updateUI() {
                     isCollapsed = !isCollapsed;
                     renderCard();
                 });
+
+                const editBtn = card.querySelector('.edit-btn');
+                if (editBtn) {
+                    editBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openEditModal(groupObj.id);
+                    });
+                }
+
+                const deleteBtn = card.querySelector('.delete-btn');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteWord(groupObj.id);
+                    });
+                }
             };
 
             renderCard();
