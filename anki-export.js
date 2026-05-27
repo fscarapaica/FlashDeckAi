@@ -56,6 +56,25 @@ function exportToAnki(wordsArray, deckName) {
 
     const { mainLang, targets } = window.getSelectedLanguages();
 
+    // Pre-filter and map targets for faster inner loops
+    const translationTargets = [];
+    const exampleTargets = [];
+    for (let i = 0; i < targets.length; i++) {
+        const t = targets[i];
+        if (t.translation) {
+            translationTargets.push({
+                lang: t.lang,
+                upperLang: t.lang.toUpperCase(),
+                transKey: `translation_${t.lang}`
+            });
+        }
+        if (t.examples) {
+            exampleTargets.push({
+                lang: t.lang
+            });
+        }
+    }
+
     // Simplify the Model to just Front and Back
     const flds = [
         { name: 'Front' },
@@ -143,14 +162,13 @@ hr { border: 0; border-bottom: 1px solid #444; margin: 25px 0; }
              }
 
              // Translations for this specific word
-             targets.forEach(t => {
-                 if (t.translation) {
-                     const trans = w[`translation_${t.lang}`];
-                     if (trans) {
-                         backHtml += `<div class="translation">${t.lang.toUpperCase()}: ${trans}</div>`;
-                     }
+             for (let k = 0; k < translationTargets.length; k++) {
+                 const t = translationTargets[k];
+                 const trans = w[t.transKey];
+                 if (trans) {
+                     backHtml += `<div class="translation">${t.upperLang}: ${trans}</div>`;
                  }
-             });
+             }
 
              // Examples for this specific word
              const maxExamples = 2;
@@ -165,14 +183,12 @@ hr { border: 0; border-bottom: 1px solid #444; margin: 25px 0; }
                     backHtml += `<button class="play-btn" onclick="playAudio('${safeMainEx}')">▶ Play Audio</button>`;
 
                     // Example Translations
-                     targets.forEach(t => {
-                        if (t.examples) {
-                            const tgtEx = w[`example_${num}_${t.lang}`];
-                            if (tgtEx) {
-                                backHtml += `<div class="example-trans">${tgtEx}</div>`;
-                            }
+                    for (let k = 0; k < exampleTargets.length; k++) {
+                        const tgtEx = w[`example_${num}_${exampleTargets[k].lang}`];
+                        if (tgtEx) {
+                            backHtml += `<div class="example-trans">${tgtEx}</div>`;
                         }
-                    });
+                    }
 
                     backHtml += `</div>`; // example-block
                  }
