@@ -508,7 +508,10 @@ function updateUI() {
             // Filtering based on search query
             if (window.searchQuery) {
                 const matchesRoot = rootWord.toLowerCase().includes(window.searchQuery);
-                const matchesWords = allWords.toLowerCase().includes(window.searchQuery);
+                const matchesWords = groupObj._words.some(w =>
+                    (w[wordKey] || '').toLowerCase().includes(window.searchQuery)
+                );
+
                 if (!matchesRoot && !matchesWords) {
                     return; // Skip rendering this card
                 }
