@@ -48,6 +48,33 @@ function migrateLegacyWords(wordsArray) {
 
 // Initialize App
 function init() {
+
+// Import words from file
+const importWordsInput = document.getElementById('import-words-file');
+if (importWordsInput) {
+    importWordsInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const text = event.target.result;
+            // Basic text splitting, works for .txt, .csv, .md
+            // For .pdf and .doc this is naive and would just extract text if it's plaintext
+            const currentVal = elements.wordInput.value.trim();
+            elements.wordInput.value = currentVal ? currentVal + '\n' + text : text;
+            showStatus('File loaded successfully!', 'success');
+        };
+        reader.onerror = () => {
+            showStatus('Error reading file', 'error');
+        };
+        reader.readAsText(file);
+
+        // Reset file input
+        e.target.value = '';
+    });
+}
+
     // Load API key from local storage
     const savedKey = localStorage.getItem('gemini_api_key');
     if (savedKey) {
@@ -972,7 +999,7 @@ function renderTargetLanguages() {
         const opacityClass = isEnabled ? '' : 'opacity-50 pointer-events-none';
 
         const div = document.createElement('div');
-        div.className = 'bg-bg-overlay border border-border-subtle rounded-lg p-4 mb-2';
+        div.className = 'target-lang-item bg-bg-overlay border border-border-subtle rounded-lg p-4 mb-2';
         div.innerHTML = `
             <div class="flex justify-between items-center mb-3">
                 <div class="flex items-center gap-2 text-sm font-semibold text-on-surface">
