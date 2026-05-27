@@ -37,6 +37,18 @@ const elements = {
     closePromptBtn: document.getElementById('close-prompt-btn')
 };
 
+// Helper to migrate legacy non-grouped words
+function migrateLegacyWords(wordsArray) {
+    if (!Array.isArray(wordsArray)) return wordsArray;
+    wordsArray.forEach(w => {
+        if (!w._isGroup) {
+            w._isGroup = true;
+            w._words = [{...w}];
+        }
+    });
+    return wordsArray;
+}
+
 // Initialize App
 function init() {
         // loadTtsSpeed(); moved below its definition
@@ -51,7 +63,8 @@ function init() {
     const savedWords = localStorage.getItem('anki_staged_words');
     if (savedWords) {
         try {
-            stagedWords = JSON.parse(savedWords);
+            let parsedWords = JSON.parse(savedWords);
+            stagedWords = migrateLegacyWords(parsedWords);
             updateUI(); // Make sure to render loaded words
         } catch(e) {
             console.error("Could not parse saved words");
@@ -449,14 +462,6 @@ async function callGeminiAPI(word, apiKey, customInstruction, model, mainLangNam
 // Update the UI (Staging area list and counts)
 function updateUI() {
     // Count total individual words, not just groups
-    // Handle legacy non-grouped words in migration
-    stagedWords.forEach(w => {
-        if (!w._isGroup) {
-            w._isGroup = true;
-            w._words = [{...w}];
-        }
-    });
-
     const totalWords = stagedWords.reduce((acc, curr) => acc + (curr._isGroup ? curr._words.length : 1), 0);
     elements.wordCount.textContent = `${totalWords} words`;
 
@@ -711,7 +716,7 @@ function importJson(event) {
         try {
             const data = JSON.parse(e.target.result);
             if (data.words && Array.isArray(data.words)) {
-                stagedWords = data.words;
+                stagedWords = migrateLegacyWords(data.words);
                 if (data.deckName) {
                     elements.deckNameInput.value = data.deckName;
                 }
