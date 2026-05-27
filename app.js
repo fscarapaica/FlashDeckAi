@@ -32,10 +32,7 @@ const elements = {
     mainLanguage: document.getElementById('main-language'),
     targetLanguagesContainer: document.getElementById('target-languages-container'),
     dynamicEditFields: document.getElementById('dynamic-edit-fields'),
-    promptSettingsBtn: document.getElementById('prompt-settings-btn'),
-    promptModal: document.getElementById('prompt-modal'),
-    closePromptBtn: document.getElementById('close-prompt-btn')
-};
+            };
 
 // Helper to migrate legacy non-grouped words
 function migrateLegacyWords(wordsArray) {
@@ -147,14 +144,6 @@ window.searchQuery = '';
     elements.cancelEditBtn.addEventListener('click', closeEditModal);
     elements.saveEditBtn.addEventListener('click', saveEditedWord);
 
-    if (elements.promptSettingsBtn) {
-        elements.promptSettingsBtn.addEventListener('click', () => {
-            elements.promptModal.classList.remove('hidden');
-        });
-        elements.closePromptBtn.addEventListener('click', () => {
-            elements.promptModal.classList.add('hidden');
-        });
-    }
 
     // Save model choice on change
     elements.modelSelect.addEventListener('change', (e) => {
@@ -776,7 +765,95 @@ window.getSelectedLanguages = getSelectedLanguages;
 window.getDeckName = () => elements.deckNameInput.value.trim() || 'Polish Vocabulary';
 
 // Start app
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => { renderTargetLanguages(); init(); initModals(); });
+
+function initModals() {
+    const deckConfigModal = document.getElementById('deck-config-modal');
+    const targetLangModal = document.getElementById('target-languages-modal');
+
+    // Open Deck Config
+    const openDeckConfigBtn = document.getElementById('open-deck-config-btn');
+    if (openDeckConfigBtn && deckConfigModal) {
+        openDeckConfigBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            deckConfigModal.classList.remove('hidden');
+        });
+    }
+
+    // Close Deck Config
+    document.getElementById('close-deck-config-btn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        deckConfigModal.classList.add('hidden');
+    });
+    document.getElementById('discard-config-btn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        deckConfigModal.classList.add('hidden');
+    });
+    document.getElementById('save-config-btn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (typeof saveState === 'function') saveState();
+        deckConfigModal.classList.add('hidden');
+    });
+
+    // Open Target Lang
+    const openTargetLangBtn = document.getElementById('open-target-lang-btn');
+    if (openTargetLangBtn && targetLangModal) {
+        openTargetLangBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            targetLangModal.classList.remove('hidden');
+        });
+    }
+
+    // Close Target Lang
+    document.getElementById('close-target-lang-btn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        targetLangModal.classList.add('hidden');
+    });
+    document.getElementById('cancel-target-lang-btn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        targetLangModal.classList.add('hidden');
+    });
+    document.getElementById('save-target-lang-btn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (typeof saveState === 'function') saveState();
+        targetLangModal.classList.add('hidden');
+    });
+
+
+    // Restore Default Prompt
+    const restorePromptBtn = document.getElementById('restore-prompt-btn');
+    const systemPromptTextarea = document.getElementById('system-prompt');
+    if (restorePromptBtn && systemPromptTextarea) {
+        restorePromptBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            systemPromptTextarea.value = 'You are an expert [MAIN_LANGUAGE] language tutor generating flashcards for an advanced student. The user will provide a word. Return ONLY a raw JSON object matching the schema. Provide translations and contextual examples at B1/B2 level. Identify the part of speech and gender if it is a noun. If the word is invalid, return a JSON object with ONLY an "error" key. No markdown formatting.';
+        });
+    }
+
+
+    // Handle toggling language block
+    document.addEventListener('change', (e) => {
+        if (e.target.classList.contains('lang-enable-cb')) {
+            const lang = e.target.dataset.lang;
+            const optionsDiv = document.querySelector(`.lang-options[data-lang="${lang}"]`);
+            if (optionsDiv) {
+                const transCb = optionsDiv.querySelector('.lang-trans-cb');
+                const exCb = optionsDiv.querySelector('.lang-ex-cb');
+                if (e.target.checked) {
+                    optionsDiv.classList.remove('opacity-50', 'pointer-events-none');
+                    if (transCb) transCb.checked = true;
+                    if (exCb) exCb.checked = true;
+                } else {
+                    optionsDiv.classList.add('opacity-50', 'pointer-events-none');
+                    if (transCb) transCb.checked = false;
+                    if (exCb) exCb.checked = false;
+                }
+            }
+        }
+    });
+
+}
+
 
 
 function setupLanguageCheckboxes() {
@@ -864,4 +941,60 @@ function saveState() {
     localStorage.setItem('anki_staged_words', JSON.stringify(stagedWords));
     const langSettings = getSelectedLanguages();
     localStorage.setItem('anki_lang_settings', JSON.stringify(langSettings));
+}
+
+function renderTargetLanguages() {
+    const container = document.getElementById('target-languages-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    // Default languages matching the mockup
+    const defaultLangs = [
+        { code: 'en', name: 'English', icon: 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9' },
+        { code: 'es', name: 'Spanish', icon: 'M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129' },
+        { code: 'de', name: 'German', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
+        { code: 'fr', name: 'French', icon: 'M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9' },
+        { code: 'it', name: 'Italian', icon: 'M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z' }
+    ];
+
+    defaultLangs.forEach(lang => {
+        let isEnabled = lang.code === 'en';
+        let doTrans = lang.code === 'en';
+        let doEx = lang.code === 'en';
+
+        const storedTrans = localStorage.getItem(`lang_${lang.code}_trans`);
+        if (storedTrans !== null) {
+            doTrans = storedTrans === 'true';
+            doEx = localStorage.getItem(`lang_${lang.code}_ex`) === 'true';
+            isEnabled = doTrans || doEx;
+        }
+
+        const opacityClass = isEnabled ? '' : 'opacity-50 pointer-events-none';
+
+        const div = document.createElement('div');
+        div.className = 'bg-bg-overlay border border-border-subtle rounded-lg p-4 mb-2';
+        div.innerHTML = `
+            <div class="flex justify-between items-center mb-3">
+                <div class="flex items-center gap-2 text-sm font-semibold text-on-surface">
+                    <svg class="w-4 h-4 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${lang.icon}"></path></svg>
+                    ${lang.name}
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only peer lang-enable-cb" data-lang="${lang.code}" ${isEnabled ? 'checked' : ''}>
+                    <div class="w-9 h-5 bg-bg-surface peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-on-surface after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-text-muted peer-checked:after:bg-on-surface after:border-border-subtle after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-electric-orange"></div>
+                </label>
+            </div>
+            <div class="ml-6 space-y-2 pl-2 border-l border-border-subtle lang-options ${opacityClass}" data-lang="${lang.code}">
+                <label class="flex items-center gap-2 cursor-pointer text-xs text-on-surface">
+                    <input type="checkbox" class="lang-trans-cb appearance-none w-4 h-4 border border-border-subtle rounded bg-bg-surface checked:bg-electric-orange checked:border-electric-orange flex items-center justify-center after:content-['✓'] after:text-on-surface after:text-[10px] after:hidden checked:after:block" data-lang="${lang.code}" value="${lang.code}" ${doTrans ? 'checked' : ''}>
+                    Translation
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer text-xs text-on-surface">
+                    <input type="checkbox" class="lang-ex-cb appearance-none w-4 h-4 border border-border-subtle rounded bg-bg-surface checked:bg-electric-orange checked:border-electric-orange flex items-center justify-center after:content-['✓'] after:text-on-surface after:text-[10px] after:hidden checked:after:block" data-lang="${lang.code}" value="${lang.code}" ${doEx ? 'checked' : ''}>
+                    Examples
+                </label>
+            </div>
+        `;
+        container.appendChild(div);
+    });
 }
