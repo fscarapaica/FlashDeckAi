@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study - FlashDeckAi</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'bg-base': '#09090B',
+                        'bg-surface': '#18181B',
+                        'bg-overlay': '#27272A',
+                        'border-subtle': '#3F3F46',
+                        'text-muted': '#A1A1AA',
+                        'on-surface': '#FAFAFA',
+                        'electric-orange': '#F97316',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                        display: ['Cal Sans', 'Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        @import url('https://fonts.cdnfonts.com/css/cal-sans');
+        body { font-family: 'Inter', sans-serif; background-color: #09090B; color: #FAFAFA; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Flip Card CSS */
+        .flip-card {
+            background-color: transparent;
+            perspective: 1000px;
+        }
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .flip-card-front {
+            /* Keep it slightly transparent so we see the background of the inner card if needed */
+        }
+        .flip-card-back {
+            transform: rotateY(180deg);
+            overflow-y: auto;
+            justify-content: flex-start;
+        }
+
+        /* Matching the Anki export CSS classes for study preview */
+        .card-content { font-family: 'Inter', sans-serif; font-size: 20px; text-align: center; color: #e0e0e0; }
+        .word { font-size: 36px; font-weight: bold; color: #3b82f6; margin-bottom: 5px; }
+        .sub-word { font-size: 20px; font-weight: bold; color: #e0e0e0; margin-bottom: 2px; }
+        .pos { font-size: 18px; font-weight: bold; color: #888; margin-bottom: 10px; }
+        .root { font-size: 18px; color: #aaa; margin-bottom: 15px; }
+        .root-badge {
+            display: inline-block;
+            background: #27272A;
+            border-radius: 12px;
+            padding: 4px 12px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #FAFAFA;
+            margin-bottom: 20px;
+            border: 1px solid #3F3F46;
+            align-self: center;
+        }
+        .root-badge-label {
+            color: #888;
+            font-size: 12px;
+            margin-right: 4px;
+        }
+
+        .translation { font-size: 22px; font-weight: bold; color: #e0e0e0; margin-bottom: 5px; }
+        .example-block { margin-top: 15px; margin-bottom: 15px; }
+        .example { font-size: 20px; font-weight: normal; margin-bottom: 3px; color: #e0e0e0; }
+        .example-trans { font-size: 18px; color: #aaa; font-style: italic; }
+        hr.card-hr { border: 0; border-bottom: 1px solid #27272A; margin: 25px 0; }
+
+        .play-btn {
+            background: #18181B;
+            color: #FAFAFA;
+            border: 1px solid #3F3F46;
+            padding: 6px 14px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 8px;
+            margin-bottom: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .play-btn:hover { background: #27272A; border-color: #52525B; }
+        .play-btn svg { width: 16px; height: 16px; margin-right: 6px; }
+
+        .word-block {
+            margin-bottom: 30px;
+            background: #18181B;
+            border: 1px solid #27272A;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden antialiased">
+    <!-- Navbar -->
+    <nav class="bg-bg-surface shadow-md p-4 z-10 border-b border-border-subtle relative">
+        <div class="w-full mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center gap-6 mb-4 md:mb-0">
+                <h1 class="text-2xl font-extrabold text-electric-orange tracking-tight font-display">FlashDeckAi</h1>
+                <div class="flex items-center gap-4 text-sm font-semibold">
+                    <a href="index.html" class="text-text-muted hover:text-on-surface transition-colors pb-1">Deck</a>
+                    <a href="study.html" class="text-electric-orange border-b-2 border-electric-orange pb-1">Study</a>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <span id="deck-status" class="text-sm font-semibold text-text-muted">Loading deck...</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col items-center justify-center p-6 bg-bg-base relative overflow-hidden">
+
+        <!-- Progress Bar -->
+        <div class="absolute top-0 left-0 w-full h-1 bg-bg-surface z-0">
+            <div id="study-progress" class="h-full bg-electric-orange transition-all duration-300" style="width: 0%"></div>
+        </div>
+
+        <div id="study-container" class="w-full max-w-5xl h-[900px] flex flex-col relative z-10 hidden">
+            <!-- The Card -->
+            <div class="flex-1 flip-card cursor-pointer" id="flashcard">
+                <div class="flip-card-inner">
+                    <!-- Front -->
+                    <div class="flip-card-front bg-bg-base border border-border-subtle rounded-2xl p-8 flex flex-col items-center justify-center shadow-xl">
+                        <div id="card-front-content" class="card-content w-full"></div>
+                        <p class="text-xs text-text-muted mt-8 absolute bottom-6">Click to flip</p>
+                    </div>
+
+                    <!-- Back -->
+                    <div class="flip-card-back bg-bg-base border border-border-subtle rounded-2xl p-8 flex flex-col shadow-xl overflow-y-auto custom-scrollbar">
+                        <div id="card-back-content" class="card-content w-full h-full flex flex-col justify-start"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls (shown when flipped) -->
+            <div id="card-controls" class="mt-8 flex justify-center gap-4 opacity-0 transition-opacity duration-300 pointer-events-none">
+                <button id="next-btn" class="px-8 py-3 bg-electric-orange text-on-surface font-semibold rounded-xl hover:bg-orange-600 transition shadow-lg">Next Card</button>
+            </div>
+        </div>
+
+        <!-- Empty / Finished State -->
+        <div id="empty-state" class="w-full max-w-md text-center flex flex-col items-center justify-center hidden">
+            <div class="w-20 h-20 bg-bg-surface rounded-full flex items-center justify-center mb-6 border border-border-subtle">
+                <svg class="w-10 h-10 text-electric-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <h2 id="empty-title" class="text-2xl font-bold mb-2">Deck Finished</h2>
+            <p id="empty-subtitle" class="text-text-muted mb-8">You have reviewed all cards in this deck.</p>
+            <div class="flex gap-4">
+                <button id="reset-study-btn" class="px-6 py-3 bg-bg-surface border border-border-subtle text-on-surface font-semibold rounded-xl hover:bg-bg-overlay transition">Study Again</button>
+                <a href="index.html" class="px-6 py-3 bg-electric-orange text-on-surface font-semibold rounded-xl hover:bg-orange-600 transition">Back to Deck</a>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="study.js"></script>
+</body>
+</html>

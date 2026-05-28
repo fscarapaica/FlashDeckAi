@@ -7,6 +7,37 @@
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS Config -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'bg-base': '#0A0A0A',
+              'bg-surface': '#121212',
+              'bg-overlay': '#1E1E1E',
+              'border-subtle': 'rgba(255, 255, 255, 0.08)',
+              'text-muted': '#888888',
+              'electric-orange': '#FF7A00',
+              'deep-blue': '#2F6BFF',
+              'surface': '#131313',
+              'on-surface': '#e5e2e1',
+            },
+            fontFamily: {
+              'sans': ['Inter', 'sans-serif'],
+              'mono': ['Geist', 'monospace'],
+              'display': ['Geist', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+
 
     <!-- Dependencies for genanki-js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
@@ -37,195 +68,126 @@
         }
     </style>
 </head>
-<body class="bg-[#09090B] text-zinc-100 font-sans h-screen overflow-hidden flex flex-col">
+<body class="bg-bg-base text-on-surface font-sans h-screen overflow-hidden flex flex-col">
 
     <!-- Navbar -->
-    <nav class="bg-[#18181B] shadow-md p-4 z-10 border-b border-[#27272A] relative">
+    <nav class="bg-bg-surface shadow-md p-4 z-10 border-b border-border-subtle relative">
         <div class="w-full mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
-            <h1 class="text-2xl font-extrabold text-[#F97316] mb-4 md:mb-0 tracking-tight">Anki AI Deck Maker</h1>
+            <div class="flex items-center gap-6 mb-4 md:mb-0">
+                <h1 class="text-2xl font-extrabold text-electric-orange tracking-tight font-display">FlashDeckAi</h1>
+                <div class="flex items-center gap-4 text-sm font-semibold">
+                    <a href="index.html" class="text-electric-orange border-b-2 border-electric-orange pb-1">Deck</a>
+                    <a href="study.html" class="text-text-muted hover:text-on-surface transition-colors pb-1">Study</a>
+                </div>
+            </div>
 
             <div class="flex items-center space-x-3 w-full md:w-auto overflow-x-auto no-scrollbar py-2 md:py-0">
-                <select id="gemini-model-select" class="px-3 py-1 border border-[#27272A] bg-[#09090B] text-zinc-100 rounded-xl text-sm appearance-none cursor-pointer focus:outline-none focus:border-[#F97316] disabled:opacity-50" disabled>
+                <select id="gemini-model-select" class="px-3 py-1 border border-border-subtle bg-bg-overlay text-on-surface rounded-xl text-sm appearance-none cursor-pointer focus:outline-none focus:border-electric-orange disabled:opacity-50" disabled>
                     <option value="">Load API Key first...</option>
                 </select>
-                <button id="prompt-settings-btn" class="flex items-center space-x-2 bg-[#09090B] hover:bg-[#27272A] text-zinc-300 px-3 py-1 rounded-xl transition-colors border border-[#27272A]">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span class="text-sm font-medium hidden sm:inline">Prompt Settings</span>
-                </button>
-                <input type="password" id="api-key" placeholder="Gemini API Key" class="px-3 py-1 border border-[#27272A] bg-[#09090B] text-zinc-100 rounded-xl text-sm w-48 focus:outline-none focus:border-[#F97316]">
-                <button id="save-api-key" class="text-sm bg-[#09090B] hover:bg-[#27272A] border border-[#27272A] text-zinc-100 px-3 py-1 rounded transition whitespace-nowrap">Save Key</button>
+                <button id="prompt-settings-btn" class="hidden">Prompt Settings</button> <!-- Hidden as per new UI but keeping id for backwards compatibility if needed -->
+
+                <input type="password" id="api-key" placeholder="Gemini API Key" class="px-3 py-1 border border-border-subtle bg-bg-overlay text-on-surface rounded-xl text-sm w-48 focus:outline-none focus:border-electric-orange">
+                <button id="save-api-key" class="text-sm bg-bg-overlay hover:bg-bg-surface border border-border-subtle text-on-surface px-3 py-1 rounded transition whitespace-nowrap">Save Key</button>
+
             </div>
         </div>
     </nav>
 
-    <!-- Main Container -->
-    <main class="w-full mx-auto mt-8 px-8 flex flex-col lg:flex-row gap-8 flex-1 min-h-0">
+        <!-- Main Container -->
+    <main class="w-full mx-auto flex flex-col lg:flex-row flex-1 min-h-0 bg-bg-base">
 
-        <!-- Left Column: Input and Deck Info -->
-        <div class="w-full lg:w-[35%] flex flex-col space-y-6 overflow-y-auto pr-2 pb-8 h-full custom-scrollbar">
+        <!-- Left Sidebar -->
+        <div class="w-full lg:w-[320px] flex flex-col overflow-y-auto h-full custom-scrollbar border-r border-border-subtle bg-bg-surface">
 
-            <!-- Vocabulary Input Card -->
-            <div class="bg-[#18181B] p-6 rounded-2xl shadow-md border border-[#27272A]">
-                <h2 class="text-lg font-bold mb-4 border-b border-[#27272A] pb-2 text-zinc-100">Add New Word</h2>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-zinc-300 mb-1">Target Word</label>
-                    <input type="text" id="polish-word-input" placeholder="Type a word..." class="w-full px-4 py-3 text-lg border border-[#27272A] bg-[#09090B] text-zinc-100 rounded-xl focus:outline-none focus:border-[#F97316] shadow-inner">
+            <!-- Vocabulary Input Section -->
+            <div class="p-6 border-b border-border-subtle">
+                <div class="flex items-center mb-4">
+                    <svg class="w-4 h-4 text-electric-orange mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"></path></svg>
+                    <h2 class="text-base font-semibold text-on-surface">Add New Word</h2>
                 </div>
-                <button id="generate-btn" class="w-full bg-[#F97316] hover:bg-[#EA580C] text-white font-bold py-3 px-4 rounded-2xl transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
-                    Generate Data
+                <div class="mb-4">
+                    <label class="block text-xs font-semibold text-text-muted mb-2 tracking-wider uppercase">Target Word</label>
+                    <textarea id="polish-word-input" rows="4" placeholder="e.g., Verschlimmbessern&#10;Schadenfreude&#10;Fernweh" class="w-full px-4 py-3 text-sm border border-border-subtle bg-bg-overlay text-on-surface rounded-lg focus:outline-none focus:border-electric-orange focus:ring-1 focus:ring-electric-orange resize-none"></textarea>
+                </div>
+                <button id="generate-btn" class="w-full bg-electric-orange hover:bg-orange-600 text-on-surface font-semibold py-2.5 px-4 rounded-md transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed text-sm">
+                    GENERATE DATA
                 </button>
+                <div class="mt-4">
+
+                    <label class="w-full bg-transparent hover:bg-bg-overlay border border-border-subtle text-on-surface py-2.5 px-4 rounded-md transition flex flex-col items-center justify-center text-sm gap-1 cursor-pointer">
+                        <div class="flex items-center font-semibold">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            IMPORT FROM FILE
+                        </div>
+                        <span class="text-[10px] text-text-muted font-normal">Supported: .doc, .pdf, .md, .txt, .csv</span>
+                        <input type="file" id="import-words-file" accept=".doc,.pdf,.md,.txt,.csv" class="hidden">
+                    </label>
+
+                </div>
 
                 <!-- Batch Progress Bar (Hidden by default) -->
                 <div id="batch-progress-container" class="mt-4 hidden">
-                    <div class="flex justify-between text-xs text-zinc-400 mb-1">
+                    <div class="flex justify-between text-xs text-text-muted mb-1">
                         <span id="batch-progress-text">Processing...</span>
                         <span id="batch-progress-percentage">0%</span>
                     </div>
-                    <div class="w-full bg-[#09090B] rounded-full h-2 border border-[#27272A]">
-                        <div id="batch-progress-bar" class="bg-[#F97316] h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    <div class="w-full bg-bg-base rounded-full h-1 border border-border-subtle">
+                        <div id="batch-progress-bar" class="bg-electric-orange h-1 rounded-full transition-all duration-300" style="width: 0%"></div>
                     </div>
                 </div>
 
                 <div id="status-message" class="mt-3 text-sm hidden font-medium"></div>
             </div>
 
-            <!-- Merged Settings -->
-            <div class="bg-[#18181B] p-6 rounded-2xl shadow-xl border border-[#27272A]">
-                <h2 class="text-lg font-bold mb-4 border-b border-[#27272A] pb-2 text-zinc-100">Settings</h2>
-                <div class="space-y-5">
+            <!-- Deck Configuration Section -->
+            <div class="p-6 border-b border-border-subtle">
+                <button id="open-deck-config-btn" class="flex items-center w-full text-left text-on-surface hover:text-electric-orange transition-colors">
+                    <svg class="w-5 h-5 text-text-muted mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                    <h2 class="text-base font-semibold">Deck Configuration</h2>
+                </button>
+            </div>
 
-                    <div>
-
-                        <div class="mb-5">
-                            <label class="block text-sm font-medium text-zinc-300 mb-1">Deck Name</label>
-                            <input type="text" id="deck-name" placeholder="e.g., Polish Vocabulary" class="w-full px-3 py-2 border border-[#27272A] bg-[#09090B] text-zinc-100 rounded-xl focus:outline-none focus:border-[#F97316]">
-                        </div>
-
-                        <div class="space-y-3 pt-2">
-                            <label class="block text-sm font-medium text-zinc-300">Project Data (JSON)</label>
-                            <div class="flex space-x-2">
-                                <button id="export-json-btn" class="flex-1 bg-[#09090B] hover:bg-[#27272A] border border-[#27272A] text-zinc-100 py-2 rounded-xl transition text-xs font-medium">Export JSON</button>
-                                <label class="flex-1 bg-[#09090B] hover:bg-[#27272A] border border-[#27272A] text-zinc-100 py-2 rounded-xl transition text-xs font-medium text-center cursor-pointer">
-                                    Load JSON
-                                    <input type="file" id="import-json-file" accept=".json" class="hidden">
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-6 pt-4 border-t border-[#27272A]">
-                         <button id="export-anki-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-2xl transition shadow-md flex justify-center items-center">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            Export .apkg
-                        </button>
-                    </div>
-
-
-
-
-                        <div class="mt-4 mb-4 border border-[#27272A] bg-[#09090B] p-4 rounded-xl">
-                            <label class="block text-sm font-medium text-zinc-300 mb-2 flex justify-between">
-                                <span>TTS Speed</span>
-                                <span id="tts-speed-display" class="text-zinc-500">1.0x</span>
-                            </label>
-                            <input type="range" id="tts-speed-slider" min="0.5" max="1.5" step="0.1" value="1.0" class="w-full accent-[#F97316]">
-                        </div>
-
-                    <label class="block text-sm font-medium text-zinc-300 mb-1 mt-3">Main Language</label>
-                        <select id="main-language" class="w-full px-3 py-2 border border-[#27272A] bg-[#09090B] text-zinc-100 rounded-xl focus:outline-none focus:border-[#F97316] mb-3">
-                            <option value="pl" selected>Polish</option>
-                            <option value="en">English</option>
-                            <option value="es">Spanish</option>
-                            <option value="de">German</option>
-                            <option value="fr">French</option>
-                            <option value="it">Italian</option>
-                            <option value="pt">Portuguese</option>
-                        </select>
-
-                        <label class="block text-sm font-medium text-zinc-300 mb-1 mt-2">Target Languages</label>
-                        <div id="target-languages-container" class="space-y-4 bg-[#09090B] p-4 rounded-xl border border-[#27272A]">
-
-                            <div class="target-lang-item border-b border-[#27272A] pb-3 last:border-0 last:pb-0">
-                                <span class="text-sm font-semibold text-zinc-100 block mb-2">English (EN)</span>
-                                <div class="flex space-x-5">
-                                    <label class="inline-flex items-center text-xs text-zinc-400 cursor-pointer">
-                                        <input type="checkbox" class="lang-trans-cb form-checkbox h-4 w-4 text-[#F97316] bg-[#09090B] border-[#27272A] rounded" data-lang="en" value="en">
-                                        <span class="ml-2">Translation</span>
-                                    </label>
-                                    <label class="inline-flex items-center text-xs text-zinc-400 cursor-pointer">
-                                        <input type="checkbox" class="lang-ex-cb form-checkbox h-4 w-4 text-[#F97316] bg-[#09090B] border-[#27272A] rounded" data-lang="en" value="en">
-                                        <span class="ml-2">Examples</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="target-lang-item border-b border-[#27272A] pb-3 last:border-0 last:pb-0">
-                                <span class="text-sm font-semibold text-zinc-100 block mb-2">Spanish (ES)</span>
-                                <div class="flex space-x-5">
-                                    <label class="inline-flex items-center text-xs text-zinc-400 cursor-pointer">
-                                        <input type="checkbox" class="lang-trans-cb form-checkbox h-4 w-4 text-[#F97316] bg-[#09090B] border-[#27272A] rounded" data-lang="es" value="es">
-                                        <span class="ml-2">Translation</span>
-                                    </label>
-                                    <label class="inline-flex items-center text-xs text-zinc-400 cursor-pointer">
-                                        <input type="checkbox" class="lang-ex-cb form-checkbox h-4 w-4 text-[#F97316] bg-[#09090B] border-[#27272A] rounded" data-lang="es" value="es">
-                                        <span class="ml-2">Examples</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="target-lang-item border-b border-[#27272A] pb-3 last:border-0 last:pb-0">
-                                <span class="text-sm font-semibold text-zinc-100 block mb-2">German (DE)</span>
-                                <div class="flex space-x-5">
-                                    <label class="inline-flex items-center text-xs text-zinc-400 cursor-pointer">
-                                        <input type="checkbox" class="lang-trans-cb form-checkbox h-4 w-4 text-[#F97316] bg-[#09090B] border-[#27272A] rounded" data-lang="de" value="de">
-                                        <span class="ml-2">Translation</span>
-                                    </label>
-                                    <label class="inline-flex items-center text-xs text-zinc-400 cursor-pointer">
-                                        <input type="checkbox" class="lang-ex-cb form-checkbox h-4 w-4 text-[#F97316] bg-[#09090B] border-[#27272A] rounded" data-lang="de" value="de">
-                                        <span class="ml-2">Examples</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="target-lang-item border-b border-[#27272A] pb-3 last:border-0 last:pb-0">
-                                <span class="text-sm font-semibold text-zinc-100 block mb-2">French (FR)</span>
-                                <div class="flex space-x-5">
-                                    <label class="inline-flex items-center text-xs text-zinc-400 cursor-pointer">
-                                        <input type="checkbox" class="lang-trans-cb form-checkbox h-4 w-4 text-[#F97316] bg-[#09090B] border-[#27272A] rounded" data-lang="fr" value="fr">
-                                        <span class="ml-2">Translation</span>
-                                    </label>
-                                    <label class="inline-flex items-center text-xs text-zinc-400 cursor-pointer">
-                                        <input type="checkbox" class="lang-ex-cb form-checkbox h-4 w-4 text-[#F97316] bg-[#09090B] border-[#27272A] rounded" data-lang="fr" value="fr">
-                                        <span class="ml-2">Examples</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
+            <!-- Project Management Section -->
+            <div class="p-6">
+                <div class="flex items-center mb-4 text-on-surface">
+                    <svg class="w-5 h-5 text-text-muted mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                    <h2 class="text-base font-semibold">Project Management</h2>
                 </div>
+                <div class="flex space-x-3 mb-6">
+                    <button id="export-json-btn" class="flex-1 bg-transparent hover:bg-bg-overlay border border-border-subtle text-on-surface py-2 rounded-md transition text-xs font-semibold uppercase">Save Project</button>
+                    <label class="flex-1 bg-transparent hover:bg-bg-overlay border border-border-subtle text-on-surface py-2 rounded-md transition text-xs font-semibold uppercase text-center cursor-pointer">
+                        Import Project
+                        <input type="file" id="import-json-file" accept=".json" class="hidden">
+                    </label>
+                </div>
+
+                <div class="pt-4 border-t border-border-subtle">
+                    <button id="export-anki-btn" class="w-full bg-deep-blue hover:bg-electric-orange text-on-surface font-semibold py-3 px-4 rounded-md transition shadow-md flex justify-center items-center text-sm">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Export .apkg
+                    </button>
                 </div>
             </div>
+
         </div>
 
         <!-- Right Column: Staging Area -->
-        <div class="w-full lg:w-[65%] overflow-y-auto pr-2 pb-8 h-full custom-scrollbar">
-            <div class="bg-[#18181B] p-6 rounded-2xl shadow-md border border-[#27272A] min-h-full flex flex-col">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 border-b border-[#27272A] pb-4 gap-4">
+        <div class="w-full lg:flex-1 overflow-y-auto px-8 py-6 h-full custom-scrollbar">
+            <div class="w-full max-w-5xl mx-auto flex flex-col h-full">
+                <!-- Staging Header -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-4 border-b border-border-subtle gap-4">
                     <div class="flex items-center gap-3">
-                        <h2 class="text-xl font-semibold text-zinc-100">Staging Area</h2>
-                        <span id="word-count" class="text-sm bg-blue-900 text-blue-200 py-1 px-3 rounded-full font-medium border border-blue-800">0 words</span>
+                        <h2 class="text-xl font-semibold text-on-surface font-display">Staging Area</h2>
+                        <span id="word-count" class="text-xs bg-bg-overlay text-text-muted py-1 px-2.5 rounded-sm font-medium border border-border-subtle">0 words</span>
                     </div>
 
                     <div class="flex items-center gap-3 w-full sm:w-auto">
                         <div class="relative w-full sm:w-48">
-                            <input type="text" id="search-cards-input" placeholder="Search cards..." class="w-full pl-8 pr-3 py-1.5 border border-[#27272A] bg-[#09090B] text-zinc-100 rounded-xl text-sm focus:outline-none focus:border-[#F97316]">
-                            <svg class="w-4 h-4 text-zinc-500 absolute left-2.5 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            <input type="text" id="search-cards-input" placeholder="Search cards..." class="w-full pl-8 pr-3 py-1.5 border border-border-subtle bg-bg-overlay text-on-surface rounded-xl text-sm focus:outline-none focus:border-electric-orange">
+                            <svg class="w-4 h-4 text-text-muted absolute left-2.5 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         </div>
-                        <button id="toggle-collapse-all-btn" class="px-3 py-1.5 bg-[#09090B] hover:bg-[#27272A] border border-[#27272A] text-zinc-300 text-sm rounded-xl transition whitespace-nowrap">
+                        <button id="toggle-collapse-all-btn" class="px-3 py-1.5 bg-transparent hover:bg-bg-overlay border border-border-subtle text-on-surface text-sm rounded-xl transition whitespace-nowrap">
                             Collapse All
                         </button>
                     </div>
@@ -234,22 +196,126 @@
                 <!-- Words List -->
                 <div id="words-container" class="flex-1 overflow-y-auto pr-2 space-y-4">
                     <!-- Cards will be injected here via JS -->
-                    <div id="empty-state" class="text-center text-gray-500 py-20">
-                        <svg class="mx-auto h-12 w-12 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    <div id="empty-state" class="text-center text-text-muted py-20">
+                        <svg class="mx-auto h-12 w-12 text-border-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                         </svg>
-                        <p class="mt-4 text-sm font-medium text-zinc-400">No words staged yet.</p>
-                        <p class="mt-1 text-xs text-gray-500">Generate a word or load a JSON project to get started.</p>
+                        <p class="mt-4 text-sm font-semibold text-on-surface">No words staged yet.</p>
+                        <p class="mt-1 text-xs">Generate a word or load a JSON project to get started.</p>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- Edit Modal (Hidden by default) -->
-    <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-70 hidden z-50 flex items-center justify-center backdrop-blur-sm">
-        <div class="bg-[#18181B] rounded-2xl p-6 w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto no-scrollbar border border-[#27272A]">
-            <h3 class="text-xl font-bold mb-4 border-b border-[#27272A] pb-2 text-zinc-100">Edit Word Data</h3>
+
+
+    <!-- Deck Configuration Modal -->
+    <div id="deck-config-modal" class="fixed inset-0 bg-black bg-opacity-80 hidden z-[60] flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-bg-surface rounded-xl p-6 w-full max-w-xl shadow-2xl border border-border-subtle flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center mb-6 border-b border-border-subtle pb-4">
+                <h3 class="text-lg font-semibold text-on-surface font-display">Deck Configuration</h3>
+                <button id="close-deck-config-btn" class="text-text-muted hover:text-on-surface transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div class="space-y-5 overflow-y-auto custom-scrollbar pr-2 flex-1">
+                <div>
+                    <label class="block text-xs font-semibold text-text-muted mb-2 tracking-wider uppercase">Deck Name</label>
+                    <div class="relative">
+                        <svg class="w-4 h-4 text-text-muted absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        <input type="text" id="deck-name" placeholder="Neuro-Linguistic Programming Frameworks" class="w-full pl-9 pr-3 py-2.5 text-sm border border-border-subtle bg-bg-overlay text-on-surface rounded-lg focus:outline-none focus:border-electric-orange">
+                    </div>
+                </div>
+
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="block text-xs font-semibold text-text-muted mb-2 tracking-wider uppercase">Main Language</label>
+                        <div class="relative">
+                            <svg class="w-4 h-4 text-text-muted absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                            <select id="main-language" class="w-full pl-9 pr-3 py-2.5 text-sm border border-border-subtle bg-bg-overlay text-on-surface rounded-lg focus:outline-none focus:border-electric-orange appearance-none">
+                                <option value="pl">Polish (PL)</option>
+                                <option value="en" selected>English (US)</option>
+                                <option value="es">Spanish (ES)</option>
+                                <option value="de">German (DE)</option>
+                                <option value="fr">French (FR)</option>
+                                <option value="it">Italian (IT)</option>
+                                <option value="pt">Portuguese (PT)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-xs font-semibold text-text-muted mb-2 tracking-wider uppercase flex justify-between">
+                            TTS Speed
+                            <span id="tts-speed-display" class="text-electric-orange">1.0x</span>
+                        </label>
+                        <div class="flex items-center space-x-3 bg-bg-overlay border border-border-subtle rounded-lg px-3 py-2.5">
+                            <svg class="w-4 h-4 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                            <input type="range" id="tts-speed-slider" min="0.5" max="1.5" step="0.1" value="1.0" class="w-full accent-electric-orange">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-border-subtle">
+                    <button id="open-target-lang-btn" class="w-full flex justify-between items-center text-sm font-semibold text-on-surface bg-bg-overlay hover:bg-bg-surface border border-border-subtle rounded-lg px-4 py-3 transition">
+                        Target Languages & Outputs
+                        <svg class="w-4 h-4 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+
+                <div class="pt-4 border-t border-border-subtle">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-xs font-semibold text-text-muted tracking-wider uppercase">System Prompt Settings</label>
+                        <button class="text-xs text-text-muted hover:text-on-surface flex items-center gap-1 transition">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            Restore Default
+                        </button>
+                    </div>
+                    <textarea id="system-prompt" rows="5" class="w-full px-4 py-3 bg-bg-overlay border border-border-subtle text-on-surface rounded-lg focus:outline-none focus:border-electric-orange text-sm font-mono leading-relaxed resize-none">You are an expert [MAIN_LANGUAGE] language tutor generating flashcards for an advanced student. The user will provide a word. Return ONLY a raw JSON object matching the schema. Provide translations and contextual examples at B1/B2 level. Identify the part of speech and gender if it is a noun. If the word is invalid, return a JSON object with ONLY an "error" key. No markdown formatting.</textarea>
+                    <p class="text-[10px] text-text-muted mt-2">This prompt dictates how the AI generates flashcards for this specific deck. Use markdown formatting for structure.</p>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3 pt-6 border-t border-border-subtle mt-4">
+                <button id="discard-config-btn" class="px-5 py-2.5 bg-transparent text-text-muted rounded-md hover:text-on-surface font-semibold text-sm transition">Discard Changes</button>
+                <button id="save-config-btn" class="px-5 py-2.5 bg-electric-orange text-on-surface rounded-md hover:bg-orange-600 font-semibold text-sm transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                    Save Configuration
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Target Languages & Outputs Modal -->
+    <div id="target-languages-modal" class="fixed inset-0 bg-black bg-opacity-80 hidden z-[70] flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-bg-surface rounded-xl w-full max-w-md shadow-2xl border border-border-subtle flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center p-5 border-b border-border-subtle">
+                <h3 class="text-base font-semibold text-on-surface font-display">Target Languages & Outputs</h3>
+                <button id="close-target-lang-btn" class="text-text-muted hover:text-on-surface transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div class="p-5 overflow-y-auto custom-scrollbar flex-1">
+                <p class="text-xs text-text-muted mb-4 leading-relaxed">Configure the languages and output components you want to generate for your flashcards.</p>
+
+                <div id="target-languages-container" class="space-y-2">
+                    <!-- Dynamic Target Languages will be generated by JS -->
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3 p-5 border-t border-border-subtle bg-bg-surface rounded-b-xl">
+                <button id="cancel-target-lang-btn" class="px-4 py-2 bg-transparent text-text-muted rounded-md hover:text-on-surface font-semibold text-xs transition">Cancel</button>
+                <button id="save-target-lang-btn" class="px-4 py-2 bg-electric-orange text-on-surface rounded-md hover:bg-orange-600 font-semibold text-xs transition">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+        <!-- Edit Modal (Hidden by default) -->
+    <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-80 hidden z-50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-bg-surface rounded-xl p-6 w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto no-scrollbar border border-border-subtle">
+            <h3 class="text-xl font-bold mb-4 border-b border-border-subtle pb-2 text-on-surface">Edit Word Data</h3>
 
             <input type="hidden" id="edit-id">
 
@@ -257,26 +323,14 @@
                         <div id="dynamic-edit-fields" class="grid grid-cols-2 gap-4 mb-4">
                             <!-- Dynamic fields will be injected here -->
                         </div>
-<div class="flex justify-end space-x-3 border-t border-[#27272A] pt-4">
-                <button id="cancel-edit-btn" class="px-4 py-2 bg-[#09090B] text-zinc-300 rounded-xl hover:bg-[#27272A] border border-[#27272A]">Cancel</button>
-                <button id="save-edit-btn" class="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium">Save Changes</button>
+<div class="flex justify-end space-x-3 border-t border-border-subtle pt-4">
+                <button id="cancel-edit-btn" class="px-4 py-2 bg-bg-overlay text-on-surface rounded-xl hover:bg-[#27272A] border border-border-subtle">Cancel</button>
+                <button id="save-edit-btn" class="px-4 py-2 bg-electric-orange text-on-surface rounded-xl hover:bg-blue-700 font-medium">Save Changes</button>
             </div>
         </div>
     </div>
 
     <!-- Application Scripts -->
-    <!-- Prompt Modal (Hidden by default) -->
-    <div id="prompt-modal" class="fixed inset-0 bg-black bg-opacity-80 hidden z-50 flex items-center justify-center backdrop-blur-sm">
-        <div class="bg-[#18181B] rounded-2xl p-6 w-full max-w-lg shadow-2xl border border-[#27272A]">
-            <h3 class="text-xl font-bold mb-4 text-white">System Prompt</h3>
-            <p class="text-xs text-zinc-400 mb-4">Edit the instructions sent to the AI. Use <span class="text-[#F97316] font-mono">[MAIN_LANGUAGE]</span> as a placeholder for the selected main language.</p>
-            <textarea id="system-prompt" rows="6" class="w-full px-3 py-2 bg-[#09090B] border border-[#27272A] text-zinc-200 rounded-xl focus:outline-none focus:border-[#F97316] text-sm font-mono leading-relaxed resize-none">You are an expert [MAIN_LANGUAGE] language tutor generating flashcards for an advanced student. The user will provide a word. Return ONLY a raw JSON object matching the schema. Provide translations and contextual examples at B1/B2 level. Identify the part of speech and gender if it is a noun. If the word is invalid, return a JSON object with ONLY an "error" key. No markdown formatting.</textarea>
-            <div class="flex justify-end space-x-3 mt-5 pt-4 border-t border-[#27272A]">
-                <button id="close-prompt-btn" class="px-5 py-2 bg-[#F97316] text-white rounded-xl font-bold hover:bg-[#EA580C] transition-colors">Done</button>
-            </div>
-        </div>
-    </div>
-
     <script src="app.js"></script>
     <script src="anki-export.js"></script>
 </body>
