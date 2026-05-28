@@ -106,6 +106,12 @@ document.addEventListener('DOMContentLoaded', () => {
         cardControls.classList.add('opacity-0', 'pointer-events-none');
         cardControls.classList.remove('opacity-100', 'pointer-events-auto');
 
+        // Reset scroll position for the back side
+        const flipCardBack = document.querySelector('.flip-card-back');
+        if (flipCardBack) {
+            flipCardBack.scrollTop = 0;
+        }
+
         const groupObj = deck[currentIndex];
         if (!groupObj || !groupObj._words || groupObj._words.length === 0) {
             cardFrontContent.innerHTML = '<div class="text-red-500">Error loading card data</div>';
