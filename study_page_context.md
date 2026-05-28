@@ -9,6 +9,7 @@ The Study page provides a lightweight, in-browser flashcard reviewing experience
    - If no words are found, it displays an "Empty Deck" state prompting the user to return to the Deck page.
 2. **Flashcard Interface**:
    - Displays a single card at a time with a 3D flip animation.
+   - The card container uses large dimensions (`max-w-5xl` width, `h-[900px]` height) to minimize scrolling for cards with extensive translations and examples.
    - **Front**: Shows the target words (comma-separated if grouped by root) and a main "Play Audio" button.
    - **Back**: Shows detailed information matching the styling of the Anki export (Root badge, part of speech, translations, and examples).
 3. **Linear Progression**:
