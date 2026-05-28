@@ -115,7 +115,7 @@ function playAudio(text) {
         flds: flds,
         req: [[0, 'all', [0]]],
         tmpls: [{ name: 'Card 1', qfmt: qfmt, afmt: afmt }],
-        css: `.card { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; color: #FAFAFA; background-color: #09090B; padding: 20px; }
+        css: `.card { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; color: #FAFAFA; background-color: #09090B; padding: 20px; display: flex; flex-direction: column; justify-content: flex-start; min-height: 100vh; margin: 0; box-sizing: border-box; }
 .word-front { font-size: 48px; font-weight: bold; color: #3b82f6; margin-bottom: 5px; letter-spacing: -0.02em; }
 .word-back { font-size: 42px; font-weight: bold; color: #3b82f6; margin-bottom: 15px; letter-spacing: -0.02em; }
 .root-badge { display: inline-block; background: #27272A; border-radius: 12px; padding: 4px 12px; font-size: 14px; font-weight: bold; color: #FAFAFA; margin-bottom: 20px; border: 1px solid #3F3F46; }
