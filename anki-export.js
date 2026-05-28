@@ -84,8 +84,13 @@ function exportToAnki(wordsArray, deckName) {
         { name: 'Back' }
     ];
 
-    const qfmt = `<div class="word">{{Front}}</div>
-{{tts ${mainLang}_${mainLang.toUpperCase()}:Front}}`;
+    const qfmt = `<div class="word-front">{{Front}}</div>
+{{tts ${mainLang}_${mainLang.toUpperCase()}:Front}}
+<div style="margin-top: 20px;">
+  <button class="play-btn-front" onclick="playAudio('{{Front}}')">
+    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+  </button>
+</div>`;
 
     const ttsSpeed = window.getTtsSpeed ? window.getTtsSpeed() : 1.0;
 
@@ -93,6 +98,8 @@ function exportToAnki(wordsArray, deckName) {
     const afmt = `{{Back}}
 <script>
 function playAudio(text) {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
     var msg = new SpeechSynthesisUtterance(text);
     msg.lang = '${mainLang}-${mainLang.toUpperCase()}';
     msg.rate = ${ttsSpeed};
@@ -100,28 +107,33 @@ function playAudio(text) {
 }
 </script>`;
 
-    const MODEL_ID = 1690000004; // Bumping model ID since fields changed
+    const MODEL_ID = 1690000005; // Bumping model ID since fields/styles changed
 
     const model = new GenankiModel({
-        name: `Dynamic Vocabulary Model ${mainLang.toUpperCase()} v3`,
+        name: `Dynamic Vocabulary Model ${mainLang.toUpperCase()} v4`,
         id: MODEL_ID.toString(),
         flds: flds,
         req: [[0, 'all', [0]]],
         tmpls: [{ name: 'Card 1', qfmt: qfmt, afmt: afmt }],
-        css: `.card { font-family: Arial, sans-serif; font-size: 20px; text-align: center; color: #e0e0e0; background-color: #202020; padding: 20px; }
-.word { font-size: 36px; font-weight: bold; color: #3b82f6; margin-bottom: 5px; }
-.sub-word { font-size: 20px; font-weight: bold; color: #e0e0e0; margin-bottom: 2px; }
-.pos { font-size: 18px; font-weight: bold; color: #888; margin-bottom: 10px; }
-.root { font-size: 18px; color: #aaa; margin-bottom: 15px; }
-.translation { font-size: 22px; font-weight: bold; color: #e0e0e0; margin-bottom: 5px; }
-.example-block { margin-top: 15px; margin-bottom: 15px; }
-.example { font-size: 20px; font-weight: normal; margin-bottom: 3px; color: #e0e0e0; }
-.example-trans { font-size: 18px; color: #aaa; font-style: italic; }
-hr { border: 0; border-bottom: 1px solid #444; margin: 25px 0; }
-.play-btn { background: #333; color: #fff; border: 1px solid #555; padding: 4px 12px; border-radius: 12px; cursor: pointer; font-size: 14px; margin-top: 5px; margin-bottom: 5px; display: inline-flex; align-items: center; justify-content: center; }
-.play-btn:hover { background: #444; }
-.word-block { margin-bottom: 30px; }
-.translation-block { margin-bottom: 15px; }`
+        css: `.card { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; color: #FAFAFA; background-color: #09090B; padding: 20px; display: flex; flex-direction: column; justify-content: flex-start; min-height: 100vh; margin: 0; box-sizing: border-box; }
+.word-front { font-size: 48px; font-weight: bold; color: #3b82f6; margin-bottom: 5px; letter-spacing: -0.02em; }
+.word-back { font-size: 42px; font-weight: bold; color: #3b82f6; margin-bottom: 15px; letter-spacing: -0.02em; }
+.root-badge { display: inline-block; background: #27272A; border-radius: 12px; padding: 4px 12px; font-size: 14px; font-weight: bold; color: #FAFAFA; margin-bottom: 20px; border: 1px solid #3F3F46; }
+.root-badge-label { color: #888; font-size: 12px; margin-right: 4px; }
+.sub-word { font-size: 20px; font-weight: bold; color: #FAFAFA; margin-bottom: 2px; }
+.pos { font-size: 16px; font-weight: normal; color: #A1A1AA; margin-bottom: 15px; }
+.translation { font-size: 18px; font-weight: bold; color: #FAFAFA; margin-bottom: 5px; }
+.example-block { margin-top: 20px; margin-bottom: 20px; }
+.example { font-size: 18px; font-weight: 500; margin-bottom: 10px; color: #FAFAFA; line-height: 1.4; }
+.example-trans { font-size: 16px; color: #A1A1AA; font-style: normal; margin-top: 10px; line-height: 1.4; }
+hr { border: 0; border-bottom: 1px solid #27272A; margin: 25px 0; }
+.play-btn { background: #18181B; color: #FAFAFA; border: 1px solid #3F3F46; padding: 8px 16px; border-radius: 16px; cursor: pointer; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s; }
+.play-btn:hover { background: #27272A; }
+.play-btn svg { width: 16px; height: 16px; margin-right: 8px; fill: currentColor; }
+.play-btn-front { background: #27272A; color: #FAFAFA; border: none; padding: 12px; border-radius: 16px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s; }
+.play-btn-front:hover { background: #3F3F46; }
+.play-btn-front svg { width: 24px; height: 24px; fill: currentColor; }
+.word-block { background: #18181B; border: 1px solid #27272A; border-radius: 8px; padding: 24px; margin-bottom: 20px; text-align: center; }`
     });
 
     const DECK_ID = hashString(deckName);
@@ -137,18 +149,18 @@ hr { border: 0; border-bottom: 1px solid #444; margin: 25px 0; }
         const frontText = groupObj._words.map(w => w[mainWordKey]).join(', ');
 
         // BACK: Build HTML chunks per word
-        let backHtml = `<div class="word">${frontText}</div>`;
+        let backHtml = `<div class="word-back">${frontText}</div>`;
 
         // Extract shared info from first word (Assuming group shares root and POS)
         const root = groupObj[mainRootKey] || groupObj._words[0][mainRootKey] || '';
 
         if (root) {
-            backHtml += `<div class="root">Root: ${root}</div>`;
+            backHtml += `<div class="root-badge"><span class="root-badge-label">ROOT:</span> ${root}</div>`;
         }
 
         // Iterate through each specific word form in the group
         // Add an HR immediately after the root section if there are words to show
-        if (groupObj._words.length > 0) {
+        if (groupObj._words.length > 0 && root) {
             backHtml += `<hr>`;
         }
 
@@ -183,7 +195,9 @@ hr { border: 0; border-bottom: 1px solid #444; margin: 25px 0; }
 
                     // Audio Button for example
                     const safeMainEx = mainEx.replace(/'/g, "\\'");
-                    backHtml += `<button class="play-btn" onclick="playAudio('${safeMainEx}')">▶ Play Audio</button>`;
+                    backHtml += `<button class="play-btn" onclick="playAudio('${safeMainEx}')">
+                        <svg viewBox="0 0 24 24"><path d="M13 5v14l8-7z M3 9v6h4l5 5V4L7 9z"/></svg> Play Audio
+                    </button>`;
 
                     // Example Translations
                     for (let k = 0; k < exampleTargets.length; k++) {
@@ -198,11 +212,6 @@ hr { border: 0; border-bottom: 1px solid #444; margin: 25px 0; }
              }
 
              backHtml += `</div>`; // word-block
-
-             // Add horizontal line between word blocks
-             if (i < groupObj._words.length - 1) {
-                 backHtml += `<hr>`;
-             }
         }
 
         const note = new GenankiNote(
