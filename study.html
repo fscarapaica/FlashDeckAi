@@ -67,6 +67,7 @@
         .flip-card-back {
             transform: rotateY(180deg);
             overflow-y: auto;
+            justify-content: flex-start;
         }
 
         /* Matching the Anki export CSS classes for study preview */
@@ -85,6 +86,7 @@
             color: #FAFAFA;
             margin-bottom: 20px;
             border: 1px solid #3F3F46;
+            align-self: center;
         }
         .root-badge-label {
             color: #888;
@@ -165,7 +167,7 @@
 
                     <!-- Back -->
                     <div class="flip-card-back bg-bg-base border border-border-subtle rounded-2xl p-8 flex flex-col shadow-xl overflow-y-auto custom-scrollbar">
-                        <div id="card-back-content" class="card-content w-full h-full"></div>
+                        <div id="card-back-content" class="card-content w-full h-full flex flex-col justify-start"></div>
                     </div>
                 </div>
             </div>
