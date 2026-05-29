@@ -2,7 +2,7 @@
 let stagedWords = [];
 
 // DOM Elements
-const elements = {
+const elements = typeof document !== 'undefined' ? {
     apiKeyInput: document.getElementById('api-key'),
     saveApiKeyBtn: document.getElementById('save-api-key'),
     deckNameInput: document.getElementById('deck-name'),
@@ -32,7 +32,7 @@ const elements = {
     mainLanguage: document.getElementById('main-language'),
     targetLanguagesContainer: document.getElementById('target-languages-container'),
     dynamicEditFields: document.getElementById('dynamic-edit-fields'),
-            };
+} : {};
 
 // Helper to migrate legacy non-grouped words
 function migrateLegacyWords(wordsArray) {
@@ -626,6 +626,11 @@ function updateUI() {
     elements.exportAnkiBtn.disabled = stagedWords.length === 0;
 }
 
+// Ensure window exists for tests
+if (typeof window === 'undefined') {
+    global.window = {};
+}
+
 // Delete word from staging
 window.deleteWord = function(id) {
     stagedWords = stagedWords.filter(w => w.id !== id);
@@ -792,7 +797,9 @@ window.getSelectedLanguages = getSelectedLanguages;
 window.getDeckName = () => elements.deckNameInput.value.trim() || 'Polish Vocabulary';
 
 // Start app
-document.addEventListener('DOMContentLoaded', () => { renderTargetLanguages(); init(); initModals(); });
+if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => { renderTargetLanguages(); init(); initModals(); });
+}
 
 function initModals() {
     const deckConfigModal = document.getElementById('deck-config-modal');
@@ -1024,4 +1031,8 @@ function renderTargetLanguages() {
         `;
         container.appendChild(div);
     });
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { callGeminiAPI, getSelectedLanguages, generateDynamicSchema };
 }
