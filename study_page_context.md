@@ -18,15 +18,14 @@ The Study page provides a lightweight, in-browser flashcard reviewing experience
    - When the card is flipped, four Anki-style buttons appear: **Again, Hard, Good, Easy**.
    - Review states (interval, ease factor, step, due date) are tracked in a `.srs` property on each card object and saved back to `localStorage` automatically.
    - New cards start in a learning phase (intervals < 1 day) and graduate to multi-day intervals.
-4. **Batch Session Management**:
-   - The page automatically filters the deck for "due" cards (where `dueDate <= now`).
-   - If no cards are due, but new (unlearned) cards exist, the Completion State prompts the user to "Start Custom Review", allowing them to input a batch size (e.g., 20 cards) to learn today.
-   - A progress bar and text counter track the user's progress through the *current session batch*, not the entire deck.
+4. **Session Management & Dashboard**:
+   - The user starts on a "Deck Dashboard" screen which provides daily statistics (Due Reviews, New Cards, Studied Today, Total Cards).
+   - Users can choose to "Review Due Cards", start a batch of "New Cards" using quick-select buttons (5, 10, 20, 50), or use the "Review Recent" button to cram the 20 most recent cards without affecting their actual SRS schedules.
+   - A progress bar and text counter track the user's progress through the *current session batch*.
 5. **Text-to-Speech (TTS)**:
    - Utilizes the browser's native Web Speech API (`window.speechSynthesis`).
    - Clicking "Play Audio" buttons on the front of the card or next to example sentences will read the text aloud in the configured main language.
    - The TTS speed is read from `localStorage` (`tts_speed`), matching the setting from the Deck page.
    - Advancing to the next card automatically cancels any currently playing audio.
 6. **Completion State**:
-   - When the user finishes the active batch (or all due cards), they are presented with a finished screen.
-   - If they still have new cards remaining, they can configure a new batch. Otherwise, they are prompted to go back to the deck.
+   - When the user finishes the active session, they are automatically returned to the Deck Dashboard, allowing them to instantly start another batch or review more cards.
