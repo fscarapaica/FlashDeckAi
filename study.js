@@ -27,9 +27,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const studyProgress = document.getElementById('study-progress');
     const deckNameDisplay = document.getElementById('deck-name-display');
 
+    // Dashboard Stats
+    const statDue = document.getElementById('stat-due');
+    const statNew = document.getElementById('stat-new');
+    const statStudied = document.getElementById('stat-studied');
+    const statTotal = document.getElementById('stat-total');
+
     // Batch settings
     const batchSizeInput = document.getElementById('batch-size-input');
     const startBatchBtn = document.getElementById('start-batch-btn');
+    const resetStudyBtn = document.getElementById('reset-study-btn');
     const batchConfigContainer = document.getElementById('batch-config-container');
 
     // Import/Export
@@ -102,27 +109,104 @@ document.addEventListener('DOMContentLoaded', () => {
         if (fullDeck.length === 0) {
             showEmptyState("Deck is Empty", "Go back to the Deck page to generate some flashcards.", false);
         } else {
-            prepareSession();
+            showDashboard();
         }
     }
 
-    function prepareSession() {
-        // Find due cards (cards that have a dueDate <= now)
+    function getTodayString() {
+        const d = new Date();
+        return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    }
+
+    function updateStudyStats() {
+        const todayStr = getTodayString();
+        let studyStats = { date: todayStr, count: 0 };
+
+        try {
+            const savedStats = localStorage.getItem('anki_study_stats');
+            if (savedStats) {
+                const parsed = JSON.parse(savedStats);
+                if (parsed.date === todayStr) {
+                    studyStats = parsed;
+                }
+            }
+        } catch (e) {}
+
+        studyStats.count++;
+        localStorage.setItem('anki_study_stats', JSON.stringify(studyStats));
+        return studyStats.count;
+    }
+
+    function getStudiedTodayCount() {
+        const todayStr = getTodayString();
+        try {
+            const savedStats = localStorage.getItem('anki_study_stats');
+            if (savedStats) {
+                const parsed = JSON.parse(savedStats);
+                if (parsed.date === todayStr) {
+                    return parsed.count;
+                }
+            }
+        } catch (e) {}
+        return 0;
+    }
+
+    function showDashboard() {
+        const now = Date.now();
+        let dueCount = 0;
+        let newCount = 0;
+
+        fullDeck.forEach(card => {
+            if (!card.srs) {
+                card.srs = { dueDate: 0, interval: 0, ease: 2.5, step: 0 };
+            }
+
+            if (card.srs.dueDate <= now) {
+                if (card.srs.interval === 0 && card.srs.step === 0) {
+                    newCount++;
+                } else {
+                    dueCount++;
+                }
+            }
+        });
+
+        statDue.textContent = dueCount;
+        statNew.textContent = newCount;
+        statTotal.textContent = fullDeck.length;
+        statStudied.textContent = getStudiedTodayCount();
+
+        deckStatus.textContent = "Ready";
+
+        showEmptyState("Deck Dashboard", "Ready for your session?", true);
+
+        // Disable start if nothing to do
+        if (dueCount === 0 && newCount === 0) {
+            startBatchBtn.textContent = "All caught up!";
+            startBatchBtn.disabled = true;
+            startBatchBtn.classList.add('opacity-50', 'cursor-not-allowed', 'hidden');
+            batchConfigContainer.classList.add('hidden');
+        } else {
+            startBatchBtn.textContent = "Start Study Session";
+            startBatchBtn.disabled = false;
+            startBatchBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'hidden');
+
+            // Only show batch config if there are new cards to configure
+            if (newCount > 0) {
+                batchConfigContainer.classList.remove('hidden');
+            } else {
+                batchConfigContainer.classList.add('hidden');
+            }
+        }
+
+        resetStudyBtn.classList.add('hidden'); // Hide study more until finished
+    }
+
+    function startCustomBatch() {
         const now = Date.now();
         const dueCards = [];
         const newCards = [];
 
         fullDeck.forEach(card => {
-            // Initialize SRS fields if they don't exist
-            if (!card.srs) {
-                card.srs = {
-                    dueDate: 0,
-                    interval: 0,
-                    ease: 2.5,
-                    step: 0 // 0: learning, 1: graduating
-                };
-            }
-
             if (card.srs.dueDate <= now) {
                 if (card.srs.interval === 0 && card.srs.step === 0) {
                     newCards.push(card);
@@ -132,30 +216,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // If we have due cards or new cards, ask for batch size if they are only new, or just start if there are actual reviews
-        if (dueCards.length > 0) {
-            // Prioritize due cards
-            sessionDeck = dueCards;
-            startStudy();
-        } else if (newCards.length > 0) {
-            // Ask how many new cards to do
-            showEmptyState("Ready to Study", `You have ${newCards.length} new cards available.`, true);
-        } else {
-            showEmptyState("Deck Finished", "You have reviewed all due cards. Great job!", false);
-        }
-    }
-
-    function startCustomBatch() {
+        // Mix due cards and a batch of new cards
         const batchSize = parseInt(batchSizeInput.value, 10) || 20;
+        const selectedNew = newCards.slice(0, batchSize);
 
-        const newCards = fullDeck.filter(card => (!card.srs || (card.srs.interval === 0 && card.srs.step === 0)) && (card.srs ? card.srs.dueDate <= Date.now() : true));
-
-        sessionDeck = newCards.slice(0, batchSize);
+        sessionDeck = [...dueCards, ...selectedNew];
 
         if (sessionDeck.length > 0) {
             startStudy();
         } else {
-            showEmptyState("Deck Finished", "No new cards left to review.", false);
+            showDashboard();
         }
     }
 
@@ -405,6 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         saveDeckState();
+        updateStudyStats();
         advanceCard();
     }
 
@@ -418,7 +489,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentIndex >= sessionDeck.length) {
             studyProgress.style.width = '100%';
             setTimeout(() => {
-                showEmptyState("Session Finished", "You have completed your reviews for this batch.", false);
+                showDashboard(); // Return to dashboard instead of a dead end
+                document.getElementById('empty-title').textContent = "Session Finished!";
+                document.getElementById('empty-subtitle').textContent = "You have completed your reviews for this batch.";
+                resetStudyBtn.classList.remove('hidden'); // Allow them to study more if available
             }, 300);
         } else {
             updateProgress();
@@ -433,6 +507,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnEasy.addEventListener('click', (e) => { e.stopPropagation(); processSrsAnswer(3); });
 
     startBatchBtn.addEventListener('click', startCustomBatch);
+    resetStudyBtn.addEventListener('click', showDashboard);
 
     // Import / Export
     exportJsonBtn.addEventListener('click', () => {
@@ -472,7 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     alert('Project loaded successfully! Your progress has been restored.');
-                    loadDeck(); // Reload UI
+                    showDashboard(); // Reload UI
                 } else {
                     throw new Error("Invalid format");
                 }
