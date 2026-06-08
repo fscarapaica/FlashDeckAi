@@ -34,10 +34,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const statTotal = document.getElementById('stat-total');
 
     // Batch settings
-    const batchSizeInput = document.getElementById('batch-size-input');
-    const startBatchBtn = document.getElementById('start-batch-btn');
-    const resetStudyBtn = document.getElementById('reset-study-btn');
+    const startDueBtn = document.getElementById('start-due-btn');
     const batchConfigContainer = document.getElementById('batch-config-container');
+    const batchBtns = document.querySelectorAll('.batch-btn');
+    const startCramBtn = document.getElementById('start-cram-btn');
+
+    let isCramMode = false;
 
     // Import/Export
     const importJsonBtn = document.getElementById('import-json-btn');
@@ -179,53 +181,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
         showEmptyState("Deck Dashboard", "Ready for your session?", true);
 
-        // Disable start if nothing to do
-        if (dueCount === 0 && newCount === 0) {
-            startBatchBtn.textContent = "All caught up!";
-            startBatchBtn.disabled = true;
-            startBatchBtn.classList.add('opacity-50', 'cursor-not-allowed', 'hidden');
-            batchConfigContainer.classList.add('hidden');
+        // Start buttons logic
+        if (dueCount > 0) {
+            startDueBtn.classList.remove('hidden');
+            startDueBtn.textContent = `Review Due Cards (${dueCount})`;
         } else {
-            startBatchBtn.textContent = "Start Study Session";
-            startBatchBtn.disabled = false;
-            startBatchBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'hidden');
-
-            // Only show batch config if there are new cards to configure
-            if (newCount > 0) {
-                batchConfigContainer.classList.remove('hidden');
-            } else {
-                batchConfigContainer.classList.add('hidden');
-            }
+            startDueBtn.classList.add('hidden');
         }
 
-        resetStudyBtn.classList.add('hidden'); // Hide study more until finished
+        if (newCount > 0) {
+            batchConfigContainer.classList.remove('hidden');
+        } else {
+            batchConfigContainer.classList.add('hidden');
+        }
     }
 
-    function startCustomBatch() {
+    function startDueSession() {
         const now = Date.now();
-        const dueCards = [];
-        const newCards = [];
-
-        fullDeck.forEach(card => {
-            if (card.srs.dueDate <= now) {
-                if (card.srs.interval === 0 && card.srs.step === 0) {
-                    newCards.push(card);
-                } else {
-                    dueCards.push(card);
-                }
-            }
-        });
-
-        // Mix due cards and a batch of new cards
-        const batchSize = parseInt(batchSizeInput.value, 10) || 20;
-        const selectedNew = newCards.slice(0, batchSize);
-
-        sessionDeck = [...dueCards, ...selectedNew];
+        sessionDeck = fullDeck.filter(card => card.srs && card.srs.dueDate <= now && (card.srs.interval > 0 || card.srs.step > 0));
 
         if (sessionDeck.length > 0) {
+            isCramMode = false;
+            startStudy();
+        }
+    }
+
+    function startNewBatch(size) {
+        const now = Date.now();
+        const newCards = fullDeck.filter(card => !card.srs || (card.srs.interval === 0 && card.srs.step === 0));
+
+        sessionDeck = newCards.slice(0, size);
+
+        if (sessionDeck.length > 0) {
+            isCramMode = false;
+            startStudy();
+        }
+    }
+
+    function startCramSession() {
+        // Grab up to 20 most recently added/modified cards (assuming fullDeck is newest first from index page behavior)
+        sessionDeck = fullDeck.slice(0, 20);
+
+        if (sessionDeck.length > 0) {
+            isCramMode = true;
             startStudy();
         } else {
-            showDashboard();
+            alert("No cards available to review.");
         }
     }
 
@@ -474,8 +475,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        saveDeckState();
-        updateStudyStats();
+        if (!isCramMode) {
+            saveDeckState();
+            updateStudyStats();
+        }
         advanceCard();
     }
 
@@ -490,9 +493,8 @@ document.addEventListener('DOMContentLoaded', () => {
             studyProgress.style.width = '100%';
             setTimeout(() => {
                 showDashboard(); // Return to dashboard instead of a dead end
-                document.getElementById('empty-title').textContent = "Session Finished!";
-                document.getElementById('empty-subtitle').textContent = "You have completed your reviews for this batch.";
-                resetStudyBtn.classList.remove('hidden'); // Allow them to study more if available
+                document.getElementById('empty-title').textContent = "Great Job!";
+                document.getElementById('empty-subtitle').textContent = "You have completed the session.";
             }, 300);
         } else {
             updateProgress();
@@ -506,8 +508,17 @@ document.addEventListener('DOMContentLoaded', () => {
     btnGood.addEventListener('click', (e) => { e.stopPropagation(); processSrsAnswer(2); });
     btnEasy.addEventListener('click', (e) => { e.stopPropagation(); processSrsAnswer(3); });
 
-    startBatchBtn.addEventListener('click', startCustomBatch);
-    resetStudyBtn.addEventListener('click', showDashboard);
+    // Session Starters
+    startDueBtn.addEventListener('click', startDueSession);
+
+    batchBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const size = parseInt(e.target.getAttribute('data-size'), 10);
+            startNewBatch(size);
+        });
+    });
+
+    startCramBtn.addEventListener('click', startCramSession);
 
     // Import / Export
     exportJsonBtn.addEventListener('click', () => {
