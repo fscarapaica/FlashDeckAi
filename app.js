@@ -94,6 +94,12 @@ if (importWordsInput) {
         }
     }
 
+    // Load deck name from localStorage
+    const savedDeckName = localStorage.getItem('anki_deck_name');
+    if (savedDeckName && elements.deckNameInput) {
+        elements.deckNameInput.value = savedDeckName;
+    }
+
     const savedLangSettings = localStorage.getItem('anki_lang_settings');
     if (savedLangSettings) {
         try {
@@ -170,6 +176,13 @@ window.searchQuery = '';
     elements.importJsonInput.addEventListener('change', importJson);
     elements.cancelEditBtn.addEventListener('click', closeEditModal);
     elements.saveEditBtn.addEventListener('click', saveEditedWord);
+
+    // Save deck name on change
+    if (elements.deckNameInput) {
+        elements.deckNameInput.addEventListener('input', (e) => {
+            localStorage.setItem('anki_deck_name', e.target.value.trim());
+        });
+    }
 
 
     // Save model choice on change
@@ -774,6 +787,7 @@ function importJson(event) {
                 stagedWords = migrateLegacyWords(data.words);
                 if (data.deckName) {
                     elements.deckNameInput.value = data.deckName;
+                    localStorage.setItem('anki_deck_name', data.deckName);
                 }
                 updateUI();
                 saveState();
@@ -975,6 +989,9 @@ function saveState() {
     localStorage.setItem('anki_staged_words', JSON.stringify(stagedWords));
     const langSettings = getSelectedLanguages();
     localStorage.setItem('anki_lang_settings', JSON.stringify(langSettings));
+    if (elements.deckNameInput) {
+        localStorage.setItem('anki_deck_name', elements.deckNameInput.value.trim());
+    }
 }
 
 function renderTargetLanguages() {

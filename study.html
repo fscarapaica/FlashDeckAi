@@ -147,6 +147,25 @@
         </div>
     </nav>
 
+    <!-- Sub Navbar for Deck Actions -->
+    <div class="bg-[#121212] border-b border-border-subtle px-4 py-2 z-10 flex justify-between items-center text-sm">
+        <div class="flex items-center gap-2">
+            <span class="text-text-muted">Current Deck:</span>
+            <span id="deck-name-display" class="font-semibold text-on-surface">Default Deck</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <input type="file" id="import-json-file" accept=".json" class="hidden">
+            <button id="import-json-btn" class="text-text-muted hover:text-on-surface transition flex items-center gap-1" onclick="document.getElementById('import-json-file').click()">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                Import State
+            </button>
+            <button id="export-json-btn" class="text-text-muted hover:text-on-surface transition flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Export State
+            </button>
+        </div>
+    </div>
+
     <!-- Main Content -->
     <main class="flex-1 flex flex-col items-center justify-center p-6 bg-bg-base relative overflow-hidden">
 
@@ -174,7 +193,22 @@
 
             <!-- Controls (shown when flipped) -->
             <div id="card-controls" class="mt-8 flex justify-center gap-4 opacity-0 transition-opacity duration-300 pointer-events-none">
-                <button id="next-btn" class="px-8 py-3 bg-electric-orange text-on-surface font-semibold rounded-xl hover:bg-orange-600 transition shadow-lg">Next Card</button>
+                <button id="btn-again" class="px-6 py-3 bg-bg-surface border border-red-500 text-red-500 font-semibold rounded-xl hover:bg-red-500 hover:text-white transition shadow-lg flex flex-col items-center">
+                    <span>Again</span>
+                    <span id="interval-again" class="text-xs font-normal opacity-70 mt-1">&lt; 1m</span>
+                </button>
+                <button id="btn-hard" class="px-6 py-3 bg-bg-surface border border-orange-500 text-orange-500 font-semibold rounded-xl hover:bg-orange-500 hover:text-white transition shadow-lg flex flex-col items-center">
+                    <span>Hard</span>
+                    <span id="interval-hard" class="text-xs font-normal opacity-70 mt-1">10m</span>
+                </button>
+                <button id="btn-good" class="px-6 py-3 bg-bg-surface border border-green-500 text-green-500 font-semibold rounded-xl hover:bg-green-500 hover:text-white transition shadow-lg flex flex-col items-center">
+                    <span>Good</span>
+                    <span id="interval-good" class="text-xs font-normal opacity-70 mt-1">1d</span>
+                </button>
+                <button id="btn-easy" class="px-6 py-3 bg-bg-surface border border-blue-500 text-blue-500 font-semibold rounded-xl hover:bg-blue-500 hover:text-white transition shadow-lg flex flex-col items-center">
+                    <span>Easy</span>
+                    <span id="interval-easy" class="text-xs font-normal opacity-70 mt-1">4d</span>
+                </button>
             </div>
         </div>
 
@@ -184,10 +218,16 @@
                 <svg class="w-10 h-10 text-electric-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             </div>
             <h2 id="empty-title" class="text-2xl font-bold mb-2">Deck Finished</h2>
-            <p id="empty-subtitle" class="text-text-muted mb-8">You have reviewed all cards in this deck.</p>
-            <div class="flex gap-4">
-                <button id="reset-study-btn" class="px-6 py-3 bg-bg-surface border border-border-subtle text-on-surface font-semibold rounded-xl hover:bg-bg-overlay transition">Study Again</button>
-                <a href="index.html" class="px-6 py-3 bg-electric-orange text-on-surface font-semibold rounded-xl hover:bg-orange-600 transition">Back to Deck</a>
+            <p id="empty-subtitle" class="text-text-muted mb-8">You have reviewed all due cards.</p>
+
+            <div id="batch-config-container" class="bg-bg-surface border border-border-subtle rounded-xl p-6 mb-8 w-full text-left">
+                <label class="block text-sm font-semibold text-on-surface mb-2">How many new cards do you want to review today?</label>
+                <input type="number" id="batch-size-input" class="w-full bg-bg-base border border-border-subtle rounded-lg px-4 py-2 text-on-surface focus:outline-none focus:border-electric-orange mb-4" value="20" min="1" max="1000">
+                <button id="start-batch-btn" class="w-full px-6 py-3 bg-electric-orange text-on-surface font-semibold rounded-xl hover:bg-orange-600 transition">Start Custom Review</button>
+            </div>
+
+            <div class="flex justify-center gap-4">
+                <a href="index.html" class="px-6 py-3 bg-bg-surface border border-border-subtle text-on-surface font-semibold rounded-xl hover:bg-bg-overlay transition">Back to Deck</a>
             </div>
         </div>
 

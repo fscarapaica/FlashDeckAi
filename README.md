@@ -3,7 +3,7 @@
 ## About the Project
 FlashDeckAi is an intelligent, frontend-only application designed to supercharge your language learning experience. By leveraging the power of the Gemini API, it acts as both a deck builder and a study tool. Users can input target vocabulary, and the application will automatically identify root words, parts of speech, and generate translations along with context-rich example sentences across multiple languages.
 
-The application features a built-in staging area for reviewing and editing generated content before exporting it directly to an Anki deck (`.apkg`), complete with styled HTML templates. Additionally, it offers an in-browser study mode for immediate practice.
+The application features a built-in staging area for reviewing and editing generated content before exporting it directly to an Anki deck (`.apkg`), complete with styled HTML templates. Additionally, it offers an in-browser study mode with Anki-like Spaced Repetition System (SRS) integration, and allows exporting/importing JSON project states (including SRS review history).
 
 ## Accessing the Application
 You can access and use FlashDeckAi directly via its GitHub Pages URL:
