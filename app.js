@@ -583,9 +583,10 @@ function updateUI() {
                     ${groupObj._words.map((w, idx) => {
                         return `
                         <div class="bg-[#18181B] p-3 rounded-lg border border-[#27272A]">
-                            <div class="flex items-center space-x-3 mb-2">
+                            <div class="flex items-center space-x-3 mb-2 flex-wrap gap-y-1">
                                 <span class="font-bold text-[#F97316]">${escapeHTML(w[wordKey])}</span>
-                                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#27272A] text-zinc-300 uppercase">${escapeHTML(w.part_of_speech || '')}</span>
+                                ${w.part_of_speech ? `<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#27272A] text-zinc-300 uppercase">${escapeHTML(w.part_of_speech)}</span>` : ''}
+                                ${w.tags && w.tags.length > 0 ? w.tags.map(tag => `<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#3F3F46] text-zinc-200 uppercase">${escapeHTML(tag)}</span>`).join('') : ''}
                             </div>
 
                             <div class="space-y-1">

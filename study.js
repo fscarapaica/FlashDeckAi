@@ -331,9 +331,18 @@ document.addEventListener('DOMContentLoaded', () => {
              backHtml += `<div class="word-block text-left">`;
              backHtml += `<div class="sub-word text-center">word: ${w[mainWordKey]}</div>`;
 
+             backHtml += `<div class="pos-container">`;
              if (pos) {
-                 backHtml += `<div class="pos text-center">part_of_speech: ${pos}</div>`;
+                 backHtml += `<div class="pos">part_of_speech: ${pos}</div>`;
              }
+             if (w.tags && w.tags.length > 0) {
+                 backHtml += `<div class="tags-container">`;
+                 w.tags.forEach(tag => {
+                     backHtml += `<span class="tag-badge">${escapeHTML(tag)}</span>`;
+                 });
+                 backHtml += `</div>`;
+             }
+             backHtml += `</div>`;
 
              // Translations
              for (let k = 0; k < translationTargets.length; k++) {
