@@ -322,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // --- BACK ---
-        let backHtml = `<div class="word-back" style="font-size: 42px; margin-bottom: 20px;">${frontText}</div>`;
+        let backHtml = `<div class="word-back" style="font-size: 38px; margin-bottom: 5px;">${frontText}</div>`;
 
         const root = groupObj[mainRootKey] || groupObj._words[0][mainRootKey] || '';
         if (root) {
@@ -338,9 +338,9 @@ document.addEventListener('DOMContentLoaded', () => {
              const pos = w.part_of_speech || groupObj._words[0].part_of_speech || '';
 
              backHtml += `<div class="word-block text-left">`;
-             backHtml += `<div class="sub-word text-center">${w[mainWordKey]}</div>`;
+             backHtml += `<div class="sub-word text-center mb-1 text-[#3b82f6]">${w[mainWordKey]}</div>`;
 
-             backHtml += `<div class="pos-container">`;
+             backHtml += `<div class="pos-container !mb-[10px]">`;
              if (pos) {
                  backHtml += `<div class="pos">${pos}</div>`;
              }

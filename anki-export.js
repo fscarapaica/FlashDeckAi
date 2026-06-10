@@ -128,11 +128,11 @@ function playAudio(text) {
         tmpls: [{ name: 'Card 1', qfmt: qfmt, afmt: afmt }],
         css: `.card { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; color: #FAFAFA; background-color: #09090B; padding: 20px; display: flex; flex-direction: column; justify-content: flex-start; min-height: 100vh; margin: 0; box-sizing: border-box; }
 .word-front { font-size: 48px; font-weight: bold; color: #3b82f6; margin-bottom: 5px; letter-spacing: -0.02em; }
-.word-back { font-size: 42px; font-weight: bold; color: #3b82f6; margin-bottom: 15px; letter-spacing: -0.02em; }
-.root-badge { display: inline-block; background: #27272A; border-radius: 12px; padding: 2px 8px; font-size: 12px; font-weight: bold; color: #FAFAFA; margin-bottom: 20px; border: 1px solid #3F3F46; }
-.root-badge-label { color: #888; font-size: 10px; margin-right: 4px; }
-.sub-word { font-size: 20px; font-weight: bold; color: #FAFAFA; margin-bottom: 2px; }
-.pos-container { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 15px; gap: 6px; }
+.word-back { font-size: 38px; font-weight: bold; color: #3b82f6; margin-bottom: 5px; letter-spacing: -0.02em; }
+.root-badge { display: inline-block; background: #27272A; border-radius: 12px; padding: 3px 10px; font-size: 13px; font-weight: bold; color: #FAFAFA; margin-bottom: 10px; border: 1px solid #3F3F46; }
+.root-badge-label { color: #888; font-size: 11px; margin-right: 4px; }
+.sub-word { font-size: 20px; font-weight: bold; color: #3b82f6; margin-bottom: 5px; }
+.pos-container { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 10px; gap: 6px; }
 .pos { background: #3F3F46; color: #E4E4E7; border-radius: 4px; padding: 2px 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; display: inline-block; }
 .tags-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
 .tag-badge { background: #3F3F46; color: #E4E4E7; border-radius: 4px; padding: 2px 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
@@ -140,7 +140,7 @@ function playAudio(text) {
 .example-block { margin-top: 20px; margin-bottom: 20px; }
 .example { font-size: 18px; font-weight: 500; margin-bottom: 10px; color: #FAFAFA; line-height: 1.4; }
 .example-trans { font-size: 16px; color: #A1A1AA; font-style: normal; margin-top: 10px; line-height: 1.4; }
-hr { border: 0; border-bottom: 1px solid #27272A; margin: 25px 0; }
+hr { border: 0; border-bottom: 1px solid #27272A; margin: 15px 0; }
 .play-btn { background: #18181B; color: #FAFAFA; border: 1px solid #3F3F46; padding: 8px 16px; border-radius: 16px; cursor: pointer; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s; }
 .play-btn:hover { background: #27272A; }
 .play-btn svg { width: 16px; height: 16px; margin-right: 8px; fill: currentColor; }
