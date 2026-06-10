@@ -179,13 +179,6 @@ hr { border: 0; border-bottom: 1px solid #27272A; margin: 25px 0; }
              if (pos) {
                  backHtml += `<div class="pos">part_of_speech: ${pos}</div>`;
              }
-             if (w.tags && w.tags.length > 0) {
-                 backHtml += `<div class="tags-container">`;
-                 w.tags.forEach(tag => {
-                     backHtml += `<span class="tag-badge">${tag}</span>`;
-                 });
-                 backHtml += `</div>`;
-             }
              backHtml += `</div>`;
 
              // Translations for this specific word
@@ -195,6 +188,15 @@ hr { border: 0; border-bottom: 1px solid #27272A; margin: 25px 0; }
                  if (trans) {
                      backHtml += `<div class="translation">${t.upperLang}: ${trans}</div>`;
                  }
+             }
+
+             // Tags
+             if (w.tags && w.tags.length > 0) {
+                 backHtml += `<div class="tags-container" style="margin-top: 20px;">`;
+                 w.tags.forEach(tag => {
+                     backHtml += `<span class="tag-badge">${tag}</span>`;
+                 });
+                 backHtml += `</div>`;
              }
 
              // Examples for this specific word
