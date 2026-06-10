@@ -129,8 +129,8 @@ function playAudio(text) {
         css: `.card { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; color: #FAFAFA; background-color: #09090B; padding: 20px; display: flex; flex-direction: column; justify-content: flex-start; min-height: 100vh; margin: 0; box-sizing: border-box; }
 .word-front { font-size: 48px; font-weight: bold; color: #3b82f6; margin-bottom: 5px; letter-spacing: -0.02em; }
 .word-back { font-size: 42px; font-weight: bold; color: #3b82f6; margin-bottom: 15px; letter-spacing: -0.02em; }
-.root-badge { display: inline-block; background: #27272A; border-radius: 12px; padding: 4px 12px; font-size: 14px; font-weight: bold; color: #FAFAFA; margin-bottom: 20px; border: 1px solid #3F3F46; }
-.root-badge-label { color: #888; font-size: 12px; margin-right: 4px; }
+.root-badge { display: inline-block; background: #27272A; border-radius: 12px; padding: 2px 8px; font-size: 12px; font-weight: bold; color: #FAFAFA; margin-bottom: 20px; border: 1px solid #3F3F46; }
+.root-badge-label { color: #888; font-size: 10px; margin-right: 4px; }
 .sub-word { font-size: 20px; font-weight: bold; color: #FAFAFA; margin-bottom: 2px; }
 .pos-container { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 15px; gap: 6px; }
 .pos { background: #3F3F46; color: #E4E4E7; border-radius: 4px; padding: 2px 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; display: inline-block; }
@@ -186,7 +186,7 @@ hr { border: 0; border-bottom: 1px solid #27272A; margin: 25px 0; }
 
              backHtml += `<div class="word-block">`;
 
-             backHtml += `<div class="sub-word">word: ${w[mainWordKey]}</div>`;
+             backHtml += `<div class="sub-word">${w[mainWordKey]}</div>`;
 
              backHtml += `<div class="pos-container">`;
              if (pos) {

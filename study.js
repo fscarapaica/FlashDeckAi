@@ -338,11 +338,11 @@ document.addEventListener('DOMContentLoaded', () => {
              const pos = w.part_of_speech || groupObj._words[0].part_of_speech || '';
 
              backHtml += `<div class="word-block text-left">`;
-             backHtml += `<div class="sub-word text-center">word: ${w[mainWordKey]}</div>`;
+             backHtml += `<div class="sub-word text-center">${w[mainWordKey]}</div>`;
 
              backHtml += `<div class="pos-container">`;
              if (pos) {
-                 backHtml += `<div class="pos">part_of_speech: ${pos}</div>`;
+                 backHtml += `<div class="pos">${pos}</div>`;
              }
              backHtml += `</div>`;
 
