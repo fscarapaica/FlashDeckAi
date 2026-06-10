@@ -312,6 +312,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         cardFrontContent.innerHTML = frontHtml;
 
+        // Autoplay the front audio
+        if (window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(frontText);
+            msg.lang = `${mainLang}-${mainLang.toUpperCase()}`;
+            msg.rate = langSettings.ttsSpeed || 1.0;
+            window.speechSynthesis.speak(msg);
+        }
+
         // --- BACK ---
         let backHtml = `<div class="word-back" style="font-size: 42px; margin-bottom: 20px;">${frontText}</div>`;
 
@@ -344,16 +353,6 @@ document.addEventListener('DOMContentLoaded', () => {
                  if (trans) {
                      backHtml += `<div class="translation text-center mt-4">${t.upperLang}: ${trans}</div>`;
                  }
-             }
-
-             // Tags (Bottom of card word-block)
-             if (w.tags && w.tags.length > 0) {
-                 backHtml += `<div class="tags-container mt-6">`;
-                 w.tags.forEach(tag => {
-                     const safeTag = tag.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-                     backHtml += `<span class="tag-badge">${safeTag}</span>`;
-                 });
-                 backHtml += `</div>`;
              }
 
              // Examples
