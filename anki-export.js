@@ -85,19 +85,30 @@ function exportToAnki(wordsArray, deckName) {
     ];
 
     const qfmt = `<div class="word-front">{{Front}}</div>
-{{tts ${mainLang}_${mainLang.toUpperCase()}:Front}}
-<div style="margin-top: 20px;">
-  <button class="play-btn-front" onclick="playAudio('{{Front}}')">
-    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-  </button>
-</div>`;
+{{tts ${mainLang}_${mainLang.toUpperCase()}:Front}}`;
 
     const ttsSpeed = window.getTtsSpeed ? window.getTtsSpeed() : 1.0;
 
     // The back template just renders the generic HTML we build in JS
     const afmt = `{{Back}}
 <script>
+var ankiDroidApi = null;
+if (typeof AnkiDroidJS !== 'undefined') {
+    try {
+        ankiDroidApi = new AnkiDroidJS({ version: "0.0.3", developer: "fscarapaica@gmail.com" });
+    } catch(e) {}
+}
+
 function playAudio(text) {
+    if (ankiDroidApi) {
+        try {
+            ankiDroidApi.ankiTtsSetLanguage('${mainLang}-${mainLang.toUpperCase()}');
+            ankiDroidApi.ankiTtsSetSpeechRate(${ttsSpeed});
+            ankiDroidApi.ankiTtsSpeak(text);
+            return;
+        } catch(e) {}
+    }
+
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const msg = new SpeechSynthesisUtterance(text);
