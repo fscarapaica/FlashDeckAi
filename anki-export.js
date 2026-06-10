@@ -225,6 +225,15 @@ hr { border: 0; border-bottom: 1px solid #27272A; margin: 25px 0; }
                  }
              }
 
+             // Tags
+             if (w.tags && w.tags.length > 0) {
+                 backHtml += `<div class="tags-container" style="margin-top: 20px;">`;
+                 w.tags.forEach(tag => {
+                     backHtml += `<span class="tag-badge">${tag}</span>`;
+                 });
+                 backHtml += `</div>`;
+             }
+
              backHtml += `</div>`; // word-block
         }
 
