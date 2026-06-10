@@ -307,8 +307,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Front play button (matching screenshot 2 style loosely, but it's mainly for the Anki UI)
         // Adding it here for study convenience
-        const safeFrontText = frontText.replace(/'/g, "\\'");
-        frontHtml += `<div class="mt-8"><button class="play-btn !p-4 !rounded-2xl bg-[#27272A] hover:bg-[#3F3F46] border-none" onclick="event.stopPropagation(); window.playAudio('${safeFrontText}')"><svg class="!m-0 w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button></div>`;
+        const safeFrontText = frontText.replace(/"/g, "&quot;");
+        frontHtml += `<div class="mt-8"><button class="play-btn play-audio-btn !p-4 !rounded-2xl bg-[#27272A] hover:bg-[#3F3F46] border-none" data-text="${safeFrontText}"><svg class="!m-0 w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button></div>`;
 
         cardFrontContent.innerHTML = frontHtml;
 
@@ -364,8 +364,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     backHtml += `<div class="example-block mt-6 text-center">`;
                     backHtml += `<div class="example text-[15px]">Example ${num}: ${mainEx}</div>`;
 
-                    const safeMainEx = mainEx.replace(/'/g, "\\'");
-                    backHtml += `<button class="play-btn" onclick="event.stopPropagation(); window.playAudio('${safeMainEx}')">
+                    const safeMainEx = mainEx.replace(/"/g, "&quot;");
+                    backHtml += `<button class="play-btn play-audio-btn" data-text="${safeMainEx}">
                         <svg fill="currentColor" viewBox="0 0 24 24"><path d="M13 5v14l8-7z M3 9v6h4l5 5V4L7 9z"/></svg> Play Audio
                     </button>`;
 
@@ -397,7 +397,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Event Listeners
-    flashcard.addEventListener('click', () => {
+    flashcard.addEventListener('click', (e) => {
+        // Handle play audio buttons
+        let target = e.target;
+        while (target && target !== flashcard) {
+            if (target.classList && target.classList.contains('play-audio-btn')) {
+                e.stopPropagation();
+                const text = target.getAttribute('data-text');
+                if (text) {
+                    window.playAudio(text);
+                }
+                return;
+            }
+            target = target.parentNode;
+        }
+
+        // Handle flip
         if (!isFlipped) {
             flashcard.classList.add('flipped');
             isFlipped = true;
@@ -560,6 +575,12 @@ document.addEventListener('DOMContentLoaded', () => {
         downloadAnchorNode.click();
         downloadAnchorNode.remove();
     });
+
+    if (importJsonBtn && importJsonFile) {
+        importJsonBtn.addEventListener('click', () => {
+            importJsonFile.click();
+        });
+    }
 
     importJsonFile.addEventListener('change', (event) => {
         const file = event.target.files[0];

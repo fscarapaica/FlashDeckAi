@@ -100,7 +100,7 @@ function exportToAnki(wordsArray, deckName) {
 function playAudio(text) {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
-    var msg = new SpeechSynthesisUtterance(text);
+    const msg = new SpeechSynthesisUtterance(text);
     msg.lang = '${mainLang}-${mainLang.toUpperCase()}';
     msg.rate = ${ttsSpeed};
     window.speechSynthesis.speak(msg);

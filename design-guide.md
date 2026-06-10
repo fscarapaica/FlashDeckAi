@@ -176,5 +176,9 @@ The design system uses a "Soft" roundedness level (`4px` to `12px`). This provid
 ### Progress Indicators
 - **AI Processing:** A thin, animated line at the top of the "Staging Area" using a gradient from `electric-orange` to `deep-blue`.
 
+### UI Security & Implementation Best Practices
+- **Event Handling:** Inline event handlers (e.g., `onclick`) are strictly prohibited in the frontend (with the sole exception of the generated Anki export template which requires them). Use event delegation for dynamically created elements to ensure robustness and mitigate XSS risks.
+- **Variables:** Use ES6+ variable declarations (`let`, `const`); avoid `var`.
+
 ### Sidebar
 - Collapsible design with a `1px` vertical border separating it from the main content. Active navigation items use a small vertical "pill" indicator in the primary accent color.
