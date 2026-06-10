@@ -61,9 +61,14 @@ python3 -m unittest discover tests
 ```
 
 **JavaScript Tests:**
+The frontend utilizes the native Node.js test runner for business logic validation:
 ```bash
 node --test
 ```
+
+## Code Standards
+- **JavaScript**: Follows ES6+ best practices, utilizes event delegation over inline event handlers (for security and performance), and prefers `let`/`const` over `var`.
+- **Python**: Adheres to PEP 8 standards, utilizes type hinting, and includes standard docstrings.
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
