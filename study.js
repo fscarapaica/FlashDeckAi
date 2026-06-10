@@ -335,13 +335,6 @@ document.addEventListener('DOMContentLoaded', () => {
              if (pos) {
                  backHtml += `<div class="pos">part_of_speech: ${pos}</div>`;
              }
-             if (w.tags && w.tags.length > 0) {
-                 backHtml += `<div class="tags-container">`;
-                 w.tags.forEach(tag => {
-                     backHtml += `<span class="tag-badge">${escapeHTML(tag)}</span>`;
-                 });
-                 backHtml += `</div>`;
-             }
              backHtml += `</div>`;
 
              // Translations
@@ -351,6 +344,16 @@ document.addEventListener('DOMContentLoaded', () => {
                  if (trans) {
                      backHtml += `<div class="translation text-center mt-4">${t.upperLang}: ${trans}</div>`;
                  }
+             }
+
+             // Tags (Bottom of card word-block)
+             if (w.tags && w.tags.length > 0) {
+                 backHtml += `<div class="tags-container mt-6">`;
+                 w.tags.forEach(tag => {
+                     const safeTag = tag.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+                     backHtml += `<span class="tag-badge">${safeTag}</span>`;
+                 });
+                 backHtml += `</div>`;
              }
 
              // Examples
