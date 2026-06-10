@@ -85,19 +85,30 @@ function exportToAnki(wordsArray, deckName) {
     ];
 
     const qfmt = `<div class="word-front">{{Front}}</div>
-{{tts ${mainLang}_${mainLang.toUpperCase()}:Front}}
-<div style="margin-top: 20px;">
-  <button class="play-btn-front" onclick="playAudio('{{Front}}')">
-    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-  </button>
-</div>`;
+{{tts ${mainLang}_${mainLang.toUpperCase()}:Front}}`;
 
     const ttsSpeed = window.getTtsSpeed ? window.getTtsSpeed() : 1.0;
 
     // The back template just renders the generic HTML we build in JS
     const afmt = `{{Back}}
 <script>
+var ankiDroidApi = null;
+if (typeof AnkiDroidJS !== 'undefined') {
+    try {
+        ankiDroidApi = new AnkiDroidJS({ version: "0.0.3", developer: "fscarapaica@gmail.com" });
+    } catch(e) {}
+}
+
 function playAudio(text) {
+    if (ankiDroidApi) {
+        try {
+            ankiDroidApi.ankiTtsSetLanguage('${mainLang}-${mainLang.toUpperCase()}');
+            ankiDroidApi.ankiTtsSetSpeechRate(${ttsSpeed});
+            ankiDroidApi.ankiTtsSpeak(text);
+            return;
+        } catch(e) {}
+    }
+
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const msg = new SpeechSynthesisUtterance(text);
@@ -117,11 +128,11 @@ function playAudio(text) {
         tmpls: [{ name: 'Card 1', qfmt: qfmt, afmt: afmt }],
         css: `.card { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; color: #FAFAFA; background-color: #09090B; padding: 20px; display: flex; flex-direction: column; justify-content: flex-start; min-height: 100vh; margin: 0; box-sizing: border-box; }
 .word-front { font-size: 48px; font-weight: bold; color: #3b82f6; margin-bottom: 5px; letter-spacing: -0.02em; }
-.word-back { font-size: 42px; font-weight: bold; color: #3b82f6; margin-bottom: 15px; letter-spacing: -0.02em; }
-.root-badge { display: inline-block; background: #27272A; border-radius: 12px; padding: 4px 12px; font-size: 14px; font-weight: bold; color: #FAFAFA; margin-bottom: 20px; border: 1px solid #3F3F46; }
-.root-badge-label { color: #888; font-size: 12px; margin-right: 4px; }
-.sub-word { font-size: 20px; font-weight: bold; color: #FAFAFA; margin-bottom: 2px; }
-.pos-container { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 15px; gap: 6px; }
+.word-back { font-size: 38px; font-weight: bold; color: #3b82f6; margin-bottom: 5px; letter-spacing: -0.02em; }
+.root-badge { display: inline-block; background: #27272A; border-radius: 12px; padding: 3px 10px; font-size: 13px; font-weight: bold; color: #FAFAFA; margin-bottom: 10px; border: 1px solid #3F3F46; }
+.root-badge-label { color: #888; font-size: 11px; margin-right: 4px; }
+.sub-word { font-size: 20px; font-weight: bold; color: #3b82f6; margin-bottom: 5px; }
+.pos-container { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 10px; gap: 6px; }
 .pos { background: #3F3F46; color: #E4E4E7; border-radius: 4px; padding: 2px 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; display: inline-block; }
 .tags-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
 .tag-badge { background: #3F3F46; color: #E4E4E7; border-radius: 4px; padding: 2px 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
@@ -129,10 +140,14 @@ function playAudio(text) {
 .example-block { margin-top: 20px; margin-bottom: 20px; }
 .example { font-size: 18px; font-weight: 500; margin-bottom: 10px; color: #FAFAFA; line-height: 1.4; }
 .example-trans { font-size: 16px; color: #A1A1AA; font-style: normal; margin-top: 10px; line-height: 1.4; }
-hr { border: 0; border-bottom: 1px solid #27272A; margin: 25px 0; }
+hr { border: 0; border-bottom: 1px solid #27272A; margin: 15px 0; }
 .play-btn { background: #18181B; color: #FAFAFA; border: 1px solid #3F3F46; padding: 8px 16px; border-radius: 16px; cursor: pointer; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s; }
 .play-btn:hover { background: #27272A; }
 .play-btn svg { width: 16px; height: 16px; margin-right: 8px; fill: currentColor; }
+.play-btn-example { margin-bottom: 10px; }
+.example-hr { border: 0; border-bottom: 1px dashed #3F3F46; margin: 15px 0; width: 60%; margin-left: auto; margin-right: auto; }
+.show-tags-btn { background: transparent; color: #A1A1AA; border: 1px solid #3F3F46; padding: 4px 12px; border-radius: 12px; cursor: pointer; font-size: 12px; transition: color 0.2s, border-color 0.2s; }
+.show-tags-btn:hover { color: #FAFAFA; border-color: #52525B; }
 .play-btn-front { background: #27272A; color: #FAFAFA; border: none; padding: 12px; border-radius: 16px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s; }
 .play-btn-front:hover { background: #3F3F46; }
 .play-btn-front svg { width: 24px; height: 24px; fill: currentColor; }
@@ -173,7 +188,7 @@ hr { border: 0; border-bottom: 1px solid #27272A; margin: 25px 0; }
 
              backHtml += `<div class="word-block">`;
 
-             backHtml += `<div class="sub-word">word: ${w[mainWordKey]}</div>`;
+             backHtml += `<div class="sub-word">${w[mainWordKey]}</div>`;
 
              backHtml += `<div class="pos-container">`;
              if (pos) {
@@ -192,17 +207,22 @@ hr { border: 0; border-bottom: 1px solid #27272A; margin: 25px 0; }
 
              // Examples for this specific word
              const maxExamples = 2;
+             let exampleCount = 0;
              for (let num = 1; num <= maxExamples; num++) {
                  const mainEx = w[`example_${num}_${mainLang}`];
                  if (mainEx) {
+                    if (exampleCount > 0) {
+                        backHtml += `<hr class="example-hr">`;
+                    }
                     backHtml += `<div class="example-block">`;
-                    backHtml += `<div class="example">Example ${num}: ${mainEx}</div>`;
 
                     // Audio Button for example
                     const safeMainEx = mainEx.replace(/'/g, "\\'");
-                    backHtml += `<button class="play-btn" onclick="playAudio('${safeMainEx}')">
+                    backHtml += `<button class="play-btn play-btn-example" onclick="playAudio('${safeMainEx}')">
                         <svg viewBox="0 0 24 24"><path d="M13 5v14l8-7z M3 9v6h4l5 5V4L7 9z"/></svg> Play Audio
                     </button>`;
+
+                    backHtml += `<div class="example">Example ${num}: ${mainEx}</div>`;
 
                     // Example Translations
                     for (let k = 0; k < exampleTargets.length; k++) {
@@ -213,16 +233,19 @@ hr { border: 0; border-bottom: 1px solid #27272A; margin: 25px 0; }
                     }
 
                     backHtml += `</div>`; // example-block
+                    exampleCount++;
                  }
              }
 
              // Tags
              if (w.tags && w.tags.length > 0) {
-                 backHtml += `<div class="tags-container" style="margin-top: 20px;">`;
+                 backHtml += `<div style="margin-top: 20px; text-align: center;">`;
+                 backHtml += `<button class="show-tags-btn" onclick="this.nextElementSibling.style.display='flex'; this.style.display='none';">Show Tags</button>`;
+                 backHtml += `<div class="tags-container" style="display: none;">`;
                  w.tags.forEach(tag => {
                      backHtml += `<span class="tag-badge">${tag}</span>`;
                  });
-                 backHtml += `</div>`;
+                 backHtml += `</div></div>`;
              }
 
              backHtml += `</div>`; // word-block
