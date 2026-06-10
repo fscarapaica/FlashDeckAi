@@ -121,7 +121,10 @@ function playAudio(text) {
 .root-badge { display: inline-block; background: #27272A; border-radius: 12px; padding: 4px 12px; font-size: 14px; font-weight: bold; color: #FAFAFA; margin-bottom: 20px; border: 1px solid #3F3F46; }
 .root-badge-label { color: #888; font-size: 12px; margin-right: 4px; }
 .sub-word { font-size: 20px; font-weight: bold; color: #FAFAFA; margin-bottom: 2px; }
-.pos { font-size: 16px; font-weight: normal; color: #A1A1AA; margin-bottom: 15px; }
+.pos-container { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 15px; gap: 6px; }
+.pos { font-size: 16px; font-weight: normal; color: #A1A1AA; }
+.tags-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.tag-badge { background: #3F3F46; color: #E4E4E7; border-radius: 4px; padding: 2px 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
 .translation { font-size: 18px; font-weight: bold; color: #FAFAFA; margin-bottom: 5px; }
 .example-block { margin-top: 20px; margin-bottom: 20px; }
 .example { font-size: 18px; font-weight: 500; margin-bottom: 10px; color: #FAFAFA; line-height: 1.4; }
@@ -172,9 +175,11 @@ hr { border: 0; border-bottom: 1px solid #27272A; margin: 25px 0; }
 
              backHtml += `<div class="sub-word">word: ${w[mainWordKey]}</div>`;
 
+             backHtml += `<div class="pos-container">`;
              if (pos) {
                  backHtml += `<div class="pos">part_of_speech: ${pos}</div>`;
              }
+             backHtml += `</div>`;
 
              // Translations for this specific word
              for (let k = 0; k < translationTargets.length; k++) {
@@ -209,6 +214,15 @@ hr { border: 0; border-bottom: 1px solid #27272A; margin: 25px 0; }
 
                     backHtml += `</div>`; // example-block
                  }
+             }
+
+             // Tags
+             if (w.tags && w.tags.length > 0) {
+                 backHtml += `<div class="tags-container" style="margin-top: 20px;">`;
+                 w.tags.forEach(tag => {
+                     backHtml += `<span class="tag-badge">${tag}</span>`;
+                 });
+                 backHtml += `</div>`;
              }
 
              backHtml += `</div>`; // word-block

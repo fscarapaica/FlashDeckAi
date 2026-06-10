@@ -331,9 +331,11 @@ document.addEventListener('DOMContentLoaded', () => {
              backHtml += `<div class="word-block text-left">`;
              backHtml += `<div class="sub-word text-center">word: ${w[mainWordKey]}</div>`;
 
+             backHtml += `<div class="pos-container">`;
              if (pos) {
-                 backHtml += `<div class="pos text-center">part_of_speech: ${pos}</div>`;
+                 backHtml += `<div class="pos">part_of_speech: ${pos}</div>`;
              }
+             backHtml += `</div>`;
 
              // Translations
              for (let k = 0; k < translationTargets.length; k++) {
@@ -366,6 +368,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     backHtml += `</div>`;
                  }
+             }
+
+             // Tags (Bottom of card word-block)
+             if (w.tags && w.tags.length > 0) {
+                 backHtml += `<div class="tags-container mt-6">`;
+                 w.tags.forEach(tag => {
+                     const safeTag = tag.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+                     backHtml += `<span class="tag-badge">${safeTag}</span>`;
+                 });
+                 backHtml += `</div>`;
              }
 
              backHtml += `</div>`;
