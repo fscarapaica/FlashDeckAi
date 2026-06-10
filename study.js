@@ -358,16 +358,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
              // Examples
              const maxExamples = 2;
+             let exampleCount = 0;
              for (let num = 1; num <= maxExamples; num++) {
                  const mainEx = w[`example_${num}_${mainLang}`];
                  if (mainEx) {
+                    if (exampleCount > 0) {
+                        backHtml += `<hr class="card-hr border-dashed w-3/5 mx-auto opacity-50 mt-6">`;
+                    }
                     backHtml += `<div class="example-block mt-6 text-center">`;
-                    backHtml += `<div class="example text-[15px]">Example ${num}: ${mainEx}</div>`;
 
                     const safeMainEx = mainEx.replace(/"/g, "&quot;");
-                    backHtml += `<button class="play-btn play-audio-btn" data-text="${safeMainEx}">
+                    backHtml += `<button class="play-btn play-audio-btn mb-3" data-text="${safeMainEx}">
                         <svg fill="currentColor" viewBox="0 0 24 24"><path d="M13 5v14l8-7z M3 9v6h4l5 5V4L7 9z"/></svg> Play Audio
                     </button>`;
+
+                    backHtml += `<div class="example text-[15px]">Example ${num}: ${mainEx}</div>`;
 
                     for (let k = 0; k < exampleTargets.length; k++) {
                         const tgtEx = w[`example_${num}_${exampleTargets[k].lang}`];
@@ -377,6 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     backHtml += `</div>`;
+                    exampleCount++;
                  }
              }
 
