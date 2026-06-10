@@ -144,6 +144,8 @@ hr { border: 0; border-bottom: 1px solid #27272A; margin: 25px 0; }
 .play-btn { background: #18181B; color: #FAFAFA; border: 1px solid #3F3F46; padding: 8px 16px; border-radius: 16px; cursor: pointer; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s; }
 .play-btn:hover { background: #27272A; }
 .play-btn svg { width: 16px; height: 16px; margin-right: 8px; fill: currentColor; }
+.play-btn-example { margin-bottom: 10px; }
+.example-hr { border: 0; border-bottom: 1px dashed #3F3F46; margin: 15px 0; width: 60%; margin-left: auto; margin-right: auto; }
 .play-btn-front { background: #27272A; color: #FAFAFA; border: none; padding: 12px; border-radius: 16px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s; }
 .play-btn-front:hover { background: #3F3F46; }
 .play-btn-front svg { width: 24px; height: 24px; fill: currentColor; }
@@ -203,17 +205,22 @@ hr { border: 0; border-bottom: 1px solid #27272A; margin: 25px 0; }
 
              // Examples for this specific word
              const maxExamples = 2;
+             let exampleCount = 0;
              for (let num = 1; num <= maxExamples; num++) {
                  const mainEx = w[`example_${num}_${mainLang}`];
                  if (mainEx) {
+                    if (exampleCount > 0) {
+                        backHtml += `<hr class="example-hr">`;
+                    }
                     backHtml += `<div class="example-block">`;
-                    backHtml += `<div class="example">Example ${num}: ${mainEx}</div>`;
 
                     // Audio Button for example
                     const safeMainEx = mainEx.replace(/'/g, "\\'");
-                    backHtml += `<button class="play-btn" onclick="playAudio('${safeMainEx}')">
+                    backHtml += `<button class="play-btn play-btn-example" onclick="playAudio('${safeMainEx}')">
                         <svg viewBox="0 0 24 24"><path d="M13 5v14l8-7z M3 9v6h4l5 5V4L7 9z"/></svg> Play Audio
                     </button>`;
+
+                    backHtml += `<div class="example">Example ${num}: ${mainEx}</div>`;
 
                     // Example Translations
                     for (let k = 0; k < exampleTargets.length; k++) {
@@ -224,6 +231,7 @@ hr { border: 0; border-bottom: 1px solid #27272A; margin: 25px 0; }
                     }
 
                     backHtml += `</div>`; // example-block
+                    exampleCount++;
                  }
              }
 
