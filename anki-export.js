@@ -146,6 +146,8 @@ hr { border: 0; border-bottom: 1px solid #27272A; margin: 15px 0; }
 .play-btn svg { width: 16px; height: 16px; margin-right: 8px; fill: currentColor; }
 .play-btn-example { margin-bottom: 10px; }
 .example-hr { border: 0; border-bottom: 1px dashed #3F3F46; margin: 15px 0; width: 60%; margin-left: auto; margin-right: auto; }
+.show-tags-btn { background: transparent; color: #A1A1AA; border: 1px solid #3F3F46; padding: 4px 12px; border-radius: 12px; cursor: pointer; font-size: 12px; transition: color 0.2s, border-color 0.2s; }
+.show-tags-btn:hover { color: #FAFAFA; border-color: #52525B; }
 .play-btn-front { background: #27272A; color: #FAFAFA; border: none; padding: 12px; border-radius: 16px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s; }
 .play-btn-front:hover { background: #3F3F46; }
 .play-btn-front svg { width: 24px; height: 24px; fill: currentColor; }
@@ -237,11 +239,13 @@ hr { border: 0; border-bottom: 1px solid #27272A; margin: 15px 0; }
 
              // Tags
              if (w.tags && w.tags.length > 0) {
-                 backHtml += `<div class="tags-container" style="margin-top: 20px;">`;
+                 backHtml += `<div style="margin-top: 20px; text-align: center;">`;
+                 backHtml += `<button class="show-tags-btn" onclick="this.nextElementSibling.style.display='flex'; this.style.display='none';">Show Tags</button>`;
+                 backHtml += `<div class="tags-container" style="display: none;">`;
                  w.tags.forEach(tag => {
                      backHtml += `<span class="tag-badge">${tag}</span>`;
                  });
-                 backHtml += `</div>`;
+                 backHtml += `</div></div>`;
              }
 
              backHtml += `</div>`; // word-block

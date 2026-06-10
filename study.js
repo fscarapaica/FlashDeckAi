@@ -387,12 +387,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
              // Tags (Bottom of card word-block)
              if (w.tags && w.tags.length > 0) {
-                 backHtml += `<div class="tags-container mt-6">`;
+                 backHtml += `<div class="mt-6 text-center">`;
+                 backHtml += `<button class="show-tags-btn text-xs px-3 py-1 rounded-xl border border-border-subtle text-text-muted hover:text-text-base hover:border-border-base transition-colors">Show Tags</button>`;
+                 backHtml += `<div class="tags-container hidden mt-4">`;
                  w.tags.forEach(tag => {
                      const safeTag = tag.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
                      backHtml += `<span class="tag-badge">${safeTag}</span>`;
                  });
-                 backHtml += `</div>`;
+                 backHtml += `</div></div>`;
              }
 
              backHtml += `</div>`;
@@ -403,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Event Listeners
     flashcard.addEventListener('click', (e) => {
-        // Handle play audio buttons
+        // Handle play audio and show tags buttons
         let target = e.target;
         while (target && target !== flashcard) {
             if (target.classList && target.classList.contains('play-audio-btn')) {
@@ -411,6 +413,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const text = target.getAttribute('data-text');
                 if (text) {
                     window.playAudio(text);
+                }
+                return;
+            }
+            if (target.classList && target.classList.contains('show-tags-btn')) {
+                e.stopPropagation();
+                const tagsContainer = target.nextElementSibling;
+                if (tagsContainer) {
+                    tagsContainer.classList.remove('hidden');
+                    tagsContainer.classList.add('flex');
+                    target.classList.add('hidden');
                 }
                 return;
             }
