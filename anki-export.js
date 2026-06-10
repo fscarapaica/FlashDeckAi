@@ -122,7 +122,7 @@ function playAudio(text) {
 .root-badge-label { color: #888; font-size: 12px; margin-right: 4px; }
 .sub-word { font-size: 20px; font-weight: bold; color: #FAFAFA; margin-bottom: 2px; }
 .pos-container { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 15px; gap: 6px; }
-.pos { font-size: 16px; font-weight: normal; color: #A1A1AA; }
+.pos { background: #3F3F46; color: #E4E4E7; border-radius: 4px; padding: 2px 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; display: inline-block; }
 .tags-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
 .tag-badge { background: #3F3F46; color: #E4E4E7; border-radius: 4px; padding: 2px 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
 .translation { font-size: 18px; font-weight: bold; color: #FAFAFA; margin-bottom: 5px; }
@@ -177,7 +177,7 @@ hr { border: 0; border-bottom: 1px solid #27272A; margin: 25px 0; }
 
              backHtml += `<div class="pos-container">`;
              if (pos) {
-                 backHtml += `<div class="pos">part_of_speech: ${pos}</div>`;
+                 backHtml += `<div class="pos">${pos}</div>`;
              }
              backHtml += `</div>`;
 
