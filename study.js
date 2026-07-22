@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
         msg.lang = langMap[langSettings.mainLang] || `${langSettings.mainLang}-${langSettings.mainLang.toUpperCase()}`;
 
         // Get speed from localStorage if available
-        const ttsSpeedStr = localStorage.getItem('tts_speed') || '1.0';
+        const ttsSpeedStr = localStorage.getItem('ttsSpeed') || localStorage.getItem('tts_speed') || '1.0';
         msg.rate = parseFloat(ttsSpeedStr);
 
         window.speechSynthesis.speak(msg);
@@ -317,7 +317,11 @@ document.addEventListener('DOMContentLoaded', () => {
             window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(frontText);
             msg.lang = `${mainLang}-${mainLang.toUpperCase()}`;
-            msg.rate = langSettings.ttsSpeed || 1.0;
+
+            // Get speed from localStorage if available
+            const ttsSpeedStr = localStorage.getItem('ttsSpeed') || localStorage.getItem('tts_speed') || '1.0';
+            msg.rate = parseFloat(ttsSpeedStr);
+
             window.speechSynthesis.speak(msg);
         }
 
