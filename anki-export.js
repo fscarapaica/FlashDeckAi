@@ -84,10 +84,12 @@ function exportToAnki(wordsArray, deckName) {
         { name: 'Back' }
     ];
 
-    const qfmt = `<div class="word-front">{{Front}}</div>
-{{tts ${mainLang}_${mainLang.toUpperCase()}:Front}}`;
+    const rawTtsSpeed = window.getTtsSpeed ? window.getTtsSpeed() : 1.0;
+    const clampedSpeed = Math.max(0.1, Math.min(rawTtsSpeed, 10.0));
+    const ttsSpeedStr = clampedSpeed.toFixed(2);
 
-    const ttsSpeed = window.getTtsSpeed ? window.getTtsSpeed() : 1.0;
+    const qfmt = `<div class="word-front">{{Front}}</div>
+{{tts ${mainLang}_${mainLang.toUpperCase()} speed=${ttsSpeedStr}:Front}}`;
 
     // The back template just renders the generic HTML we build in JS
     const afmt = `{{Back}}
@@ -103,7 +105,7 @@ function playAudio(text) {
     if (ankiDroidApi) {
         try {
             ankiDroidApi.ankiTtsSetLanguage('${mainLang}-${mainLang.toUpperCase()}');
-            ankiDroidApi.ankiTtsSetSpeechRate(${ttsSpeed});
+            ankiDroidApi.ankiTtsSetSpeechRate(${ttsSpeedStr});
             ankiDroidApi.ankiTtsSpeak(text);
             return;
         } catch(e) {}
@@ -113,7 +115,7 @@ function playAudio(text) {
     window.speechSynthesis.cancel();
     const msg = new SpeechSynthesisUtterance(text);
     msg.lang = '${mainLang}-${mainLang.toUpperCase()}';
-    msg.rate = ${ttsSpeed};
+    msg.rate = ${ttsSpeedStr};
     window.speechSynthesis.speak(msg);
 }
 </script>`;
